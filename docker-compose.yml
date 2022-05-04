@@ -1,0 +1,37 @@
+version: "3.7"
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend/
+    ports:
+      - 3001:3000
+    volumes:
+      - ./:/webcrawler
+      - '/webcrawler/frontend/node_modules'
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: webcrawler
+      CHOKIDAR_USEPOLLING: true
+
+  backend:
+    container_name: backend
+    build:
+      context: ./backend/
+
+  database:
+    container_name: database
+    image: mysql:8.0
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: webcrawler
+    ports:
+      - 3306:3306
+
+volumes:
+  db-data:
