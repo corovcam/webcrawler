@@ -77,7 +77,7 @@ export default class Wizard extends React.Component {
       <Box sx={{width: "50%", margin: "auto auto", padding: "1%", border: "2px solid black"}}>
         <Stack component="form" onSubmit={this.handleSubmit} spacing={3} justifyContent="center" alignItems="center">
           {/* URL */}
-          <FormControl>
+          <FormControl fullWidth>
             <FormLabel id="url-label">URL</FormLabel>
             <TextField 
               name="url" 
@@ -113,7 +113,7 @@ export default class Wizard extends React.Component {
           {/* Periodicity Input 
           TODO: Fix state flow from child PeriodicityInput
           */}
-          <PeriodicityInput setPeriodicity={this.handlePeriodicityChange} />
+          <PeriodicityInput periodicity={this.state.periodicity} onPeriodicityChange={this.handlePeriodicityChange} />
           {/* Label Input */}
           <FormControl>
             <FormLabel id="label-inp">Label</FormLabel>
@@ -163,33 +163,36 @@ export default class Wizard extends React.Component {
   }
 }
 
-function PeriodicityInput(props) {
-  const [time, setTime] = React.useState(null);
-  const [day, setDay] = React.useState("");
+function getDateObject(hours, mins) {
+  const createDate = () => {
+    let date = new Date();
+    date.setHours(hours, mins);
+    return date;
+  };
+  return (hours === "" && mins === "") ?  null : createDate();
+};
 
-  const changePeriodicity = () => props.setPeriodicity(time, day);
+function PeriodicityInput(props) {
+  let time = getDateObject(props.periodicity.hour, props.periodicity.min);
+  let day = props.periodicity.day;
+
+  const handleChange = () => {
+    props.onPeriodicityChange(time, day);
+  };
 
   const timeCheck = (newTime) => {
-    setTime(newTime);
+    time = newTime;
     // Set Default for Day
-    if (newTime && !day) {
-      setDay("mon");
-    }
-    if (!newTime && day) {
-      setDay("");
-    }
+    day = newTime && !day ? "mon" : day;
+    day = !newTime && day ? "" : day
   };
 
   const dayCheck = (event) => {
     const value = event.target.value;
-    setDay(value);
+    day = value;
     // Set Default for Time
-    if (value && !time) {
-      setTime(new Date());
-    }
-    if (!value && time) {
-      setTime(null);
-    }
+    time = value && !time ? new Date() : time;
+    time = !value && time ? null : time;
   };
 
   return (
@@ -204,7 +207,7 @@ function PeriodicityInput(props) {
                 value={time} 
                 onChange={(newTime) => {
                   timeCheck(newTime);
-                  changePeriodicity();
+                  handleChange();
                 }} 
                 renderInput={(params) => <TextField {...params} size="small" />}
               />
@@ -221,8 +224,8 @@ function PeriodicityInput(props) {
               autoWidth 
               value={day} 
               onChange={(event) => {
-                dayCheck(event)
-                changePeriodicity();
+                dayCheck(event);
+                handleChange();
               }}
             >
               <MenuItem value=""><em>None</em></MenuItem>
@@ -245,22 +248,24 @@ function PeriodicityInput(props) {
 }
 
 function HelpTooltip(props) {
-  const IconTooltip = 
-    <Tooltip title={props.title}>
-        <IconButton>
-          <HelpOutlineIcon />
-        </IconButton>
-    </Tooltip>
-  ;
+  const IconTooltip = () => {
+    return (
+      <Tooltip title={props.title}>
+          <IconButton>
+            <HelpOutlineIcon />
+          </IconButton>
+      </Tooltip>
+    );
+  };
 
   if (props.adorned) {
     return (
       <InputAdornment position="end">
-        {IconTooltip}
+        {IconTooltip()}
       </InputAdornment>
     );
   }
   else {
-    return IconTooltip;
+    return IconTooltip();
   }
 }
