@@ -110,9 +110,7 @@ export default class Wizard extends React.Component {
               }}
             />
           </FormControl>
-          {/* Periodicity Input 
-          TODO: Fix state flow from child PeriodicityInput
-          */}
+          {/* Periodicity Input */}
           <PeriodicityInput periodicity={this.state.periodicity} onPeriodicityChange={this.handlePeriodicityChange} />
           {/* Label Input */}
           <FormControl>
