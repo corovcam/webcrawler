@@ -10,27 +10,15 @@ services:
     volumes:
       - ./:/webcrawler
       - '/webcrawler/frontend/node_modules'
+    stdin_open: true
     environment:
       MYSQL_HOST: mysql
       MYSQL_USER: root
       MYSQL_PASSWORD: secret
       MYSQL_DB: webcrawler
+      CHOKIDAR_USEPOLLING: "true"
 
   backend:
     container_name: backend
     build:
       context: ./backend/
-
-  database:
-    container_name: database
-    image: mysql:8.0
-    volumes:
-      - db-data:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: webcrawler
-    ports:
-      - 3306:3306
-
-volumes:
-  db-data:
