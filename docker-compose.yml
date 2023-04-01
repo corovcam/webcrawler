@@ -17,8 +17,3 @@ services:
       MYSQL_PASSWORD: secret
       MYSQL_DB: webcrawler
       CHOKIDAR_USEPOLLING: "true"
-
-  backend:
-    container_name: backend
-    build:
-      context: ./backend/
