@@ -1,32 +1,39 @@
-create table website_records (
-	record_id INT,
-	url VARCHAR(1000),
-	boundary_regexp VARCHAR(100),
-	periodicity VARCHAR(50),
-	label VARCHAR(50),
-	is_active BOOLEAN
+create table IF NOT EXISTS website_records (
+	record_id INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	url VARCHAR(9999) NOT NULL,
+	boundary_regexp VARCHAR(1000),
+	periodicity INT unsigned NOT NULL,
+	label VARCHAR(100) NOT NULL,
+	is_active BOOLEAN DEFAULT true,
+	is_being_crawled BOOLEAN DEFAULT false,
+	tags json NOT NULL,
+	crawled_data json DEFAULT NULL,
+	request_do_crawl BOOLEAN DEFAULT false
 );
 
-ALTER TABLE website_records
-ADD PRIMARY KEY (record_id);
+-- Generate different test data for website_records table using previous schema
+-- Data is used for webcrawler app that is used to crawl websites and store data in database
+-- Crawler recursively crawls all pages that are linked to the website if the link matches the boundary_regexp
+-- Generate data for 3 websites, different tags, different boundary_regexp, different periodicity, different label, different url
+INSERT INTO `website_records` VALUES
+(1,'https://www.24ur.com/','https://www.24ur.com/.*',1,'24ur',true,false,JSON_ARRAY('24ur'),null,false),
+(2,'https://www.rtvslo.si/','https://www.rtvslo.si/.*',1,'rtvslo',true,false,JSON_ARRAY('rtvs', 'hello'),null,false),
+(3,'https://www.delo.si/','https://www.delo.si/.*',1,'delo',true,false,JSON_ARRAY(),null,false);
 
-insert into website_records (record_id, url, boundary_regexp, periodicity, label, is_active) values (1, 'https://upenn.edu/metus/vitae/ipsum.json?amet=neque&cursus=vestibulum&id=eget&turpis=vulputate&integer=ut&aliquet=ultrices&massa=vel&id=augue&lobortis=vestibulum&convallis=ante&tortor=ipsum&risus=primis&dapibus=in&augue=faucibus&vel=orci&accumsan=luctus&tellus=et&nisi=ultrices&eu=posuere&orci=cubilia&mauris=curae&lacinia=donec&sapien=pharetra&quis=magna&libero=vestibulum&nullam=aliquet', 'sENzp2oU6a', '23:50 sun', 'id', false);
-insert into website_records (record_id, url, boundary_regexp, periodicity, label, is_active) values (2, 'http://parallels.com/suscipit/a/feugiat/et/eros/vestibulum/ac.xml?vivamus=duis&in=bibendum&felis=felis&eu=sed&sapien=interdum&cursus=venenatis&vestibulum=turpis&proin=enim&eu=blandit&mi=mi&nulla=in&ac=porttitor&enim=pede&in=justo', 'mI9NgRMtK6', null, 'pretium', true);
-insert into website_records (record_id, url, boundary_regexp, periodicity, label, is_active) values (3, 'http://google.cn/mauris/sit/amet/eros/suspendisse/accumsan.xml?dui=proin&proin=at&leo=turpis&odio=a&porttitor=pede&id=posuere&consequat=nonummy&in=integer&consequat=non&ut=velit&nulla=donec&sed=diam&accumsan=neque&felis=vestibulum&ut=eget&at=vulputate&dolor=ut&quis=ultrices&odio=vel&consequat=augue&varius=vestibulum&integer=ante&ac=ipsum&leo=primis&pellentesque=in&ultrices=faucibus&mattis=orci&odio=luctus&donec=et&vitae=ultrices&nisi=posuere&nam=cubilia&ultrices=curae&libero=donec&non=pharetra', 'fm76IG8b36', '23:26 thu', 'sed', true);
-insert into website_records (record_id, url, boundary_regexp, periodicity, label, is_active) values (4, 'https://nsw.gov.au/integer/ac/leo/pellentesque.jsp?nulla=magnis&ultrices=dis&aliquet=parturient&maecenas=montes&leo=nascetur&odio=ridiculus&condimentum=mus&id=etiam&luctus=vel&nec=augue&molestie=vestibulum&sed=rutrum&justo=rutrum&pellentesque=neque&viverra=aenean&pede=auctor&ac=gravida&diam=sem&cras=praesent&pellentesque=id&volutpat=massa&dui=id&maecenas=nisl&tristique=venenatis&est=lacinia&et=aenean&tempus=sit&semper=amet&est=justo&quam=morbi&pharetra=ut&magna=odio&ac=cras', 'HeCoEusaqY', '23:52 sun', 'quisque', false);
 
-create table executions (
-	execution_id INT,
-	record_id INT,
-	start_time DATETIME,
-	end_time DATETIME,
-	status BOOLEAN,
-	start_node_id INT,
-	sites_crawled_count INT
+create table IF NOT EXISTS executions (
+	execution_id INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	status BOOLEAN DEFAULT false,
+	start_time DATETIME DEFAULT NULL,
+	end_time DATETIME DEFAULT NULL,
+	sites_crawled_count INT DEFAULT NULL,
+	record_id INT unsigned NOT NULL REFERENCES website_records(record_id)
 );
 
 ALTER TABLE executions
-ADD PRIMARY KEY (execution_id);
+ADD CONSTRAINT execution_record_id_fk FOREIGN KEY (record_id) REFERENCES website_records(record_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE executions
-ADD FOREIGN KEY (record_id) REFERENCES website_records(record_id);
+INSERT INTO `executions` VALUES
+(1,false,'2020-05-01 00:00:00','2020-05-01 00:00:05',0,1),
+(2,false,'2020-05-01 00:00:00','2020-05-01 00:00:05',0,2),
+(3,false,'2020-05-01 00:00:00','2020-05-01 00:00:04',0,3);
