@@ -1,19 +1,64 @@
-version: "3.7"
+version: "3.8"
 
 services:
+  backend:
+    build: 
+      context: ./backend
+      target: dev
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - 3001:3001
+    volumes:
+      - './backend/app.js:/webcrawler/backend/app.js'
+      - './backend/src/:/webcrawler/backend/src/'
+      - '/webcrawler/backend/node_modules/'
+    environment:
+      DB_HOST: mysqldb
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_DATABASE
+      NODE_ENV: development
+      DEBUG: nodejs-docker-express:*
+    networks:
+      - backend-service
+      - frontend-ui
+    depends_on:
+      - database
   frontend:
     container_name: frontend
     build:
-      context: ./frontend/
+      context: ./frontend
+    env_file: ./.env
     ports:
-      - 3001:3000
+      - 3000:3000
     volumes:
-      - ./:/webcrawler
-      - '/webcrawler/frontend/node_modules'
+      - './frontend/src/:/webcrawler/frontend/src/'
+      - '/webcrawler/frontend/node_modules/'
     stdin_open: true
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_USER: root
-      MYSQL_PASSWORD: secret
-      MYSQL_DB: webcrawler
       CHOKIDAR_USEPOLLING: "true"
+    networks:
+      - frontend-ui
+    depends_on:
+      - backend
+  database:
+    image: mysql:8.0
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      MYSQL_DATABASE: $DB_DATABASE
+      TZ: Europe/Prague
+    ports:
+      - 3307:3306
+    volumes:
+      - db:/var/lib/mysql
+      - ./db_test_data/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-service
+volumes:
+  db:
+networks:
+  frontend-ui:
+  backend-service:
