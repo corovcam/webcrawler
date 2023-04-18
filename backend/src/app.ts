@@ -2,6 +2,7 @@ import express from 'express';
 import { Worker } from 'worker_threads';
 import db_conn from './database/db_config';
 import WebsiteRecordsAPI from './api/website_records';
+import ExecutionsAPI from './api/executions';
 
 const cors = require('cors');
 
@@ -21,7 +22,8 @@ app.use(cors({
   "origin": '*',
 }));
 
-new WebsiteRecordsAPI(app, db_conn).init();
+WebsiteRecordsAPI.init(app, db_conn);
+ExecutionsAPI.init(app, db_conn);
 
 app.listen(port, () => {
   console.log(`Example server listening on port ${port}`);

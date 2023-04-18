@@ -10,3 +10,12 @@ export interface WebsiteRecord {
     crawledData: any;
     requestDoCrawl: boolean;
 }
+
+export interface Execution {
+    id: number;
+    status: string;
+    startTime: string;
+    endTime: string;
+    sitesCrawledCount: number;
+    websiteRecordId: number;
+}
