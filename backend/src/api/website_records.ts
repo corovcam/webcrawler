@@ -119,6 +119,35 @@ class WebsiteRecordsAPI {
         return;
       });
     });
+
+    // Request to crawl a specific website record (by ID)
+    app.get(
+      "/crawl-website-record/:id",
+      async (req: Request, res: Response) => {
+        const query =
+          "UPDATE website_records SET request_do_crawl = ? WHERE record_id = ?";
+
+        db.query(
+          query,
+          [true, req.params.id],
+          function (error, results: OkPacket, _) {
+            if (error) {
+              res.status(500).send({ errorMsg: error });
+              return;
+            }
+            if (results.affectedRows === 0) {
+              res
+                .status(404)
+                .send({ errorMsg: `Record ${req.params.id} not found!` });
+              return;
+            }
+            const message = `Record ${req.params.id} successfully requested for crawling!`;
+            console.log(message);
+            res.status(200).send({ data: message });
+          }
+        );
+      }
+    );
   }
 
   private static validateAndParseWebsiteRecord(websiteRecord): WebsiteRecord {

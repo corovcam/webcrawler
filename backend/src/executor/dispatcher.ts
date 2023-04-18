@@ -39,6 +39,12 @@ export default function runDispatcherWorker() {
     //   .then((response) => console.log(response.data.data))
     //   .catch((error) => console.log(error.response.data.errorMsg));
 
+    // Test /crawl-website-record/:id API call
+    await axios
+      .get("/crawl-website-record/1")
+      .then((response) => console.log(response.data.data))
+      .catch((error) => console.log(error.response.data.errorMsg));
+
     // Text execution API calls
     let executions = await axios
       .get("/executions/")
