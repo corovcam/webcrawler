@@ -14,7 +14,7 @@ class ExecutionsAPI {
           res.status(500).send({ errorMsg: error });
           return;
         }
-        console.log("Executions fetched successfully!");
+        // console.log("Executions fetched successfully!");
         res.status(200).send({ executions: results });
       });
     });
@@ -34,9 +34,7 @@ class ExecutionsAPI {
               res.status(500).send({ errorMsg: error });
               return;
             }
-            console.log(
-              `Last Execution for website record ${req.params.id} fetched successfully!`
-            );
+            // console.log(`Last Execution for website record ${req.params.id} fetched successfully!`);
             res
               .status(200)
               .send({ execution: results.length != 0 ? results[0] : null });
@@ -60,9 +58,7 @@ class ExecutionsAPI {
               res.status(500).send({ errorMsg: error });
               return;
             }
-            console.log(
-              `Executions for website record ${req.params.id} fetched successfully!`
-            );
+            // console.log(`Executions for website record ${req.params.id} fetched successfully!`);
             res.status(200).send({ executions: results });
           }
         );

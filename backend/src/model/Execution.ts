@@ -2,15 +2,15 @@ import { ExecutionDB } from "../../@types/index";
 
 export default class Execution {
   id: number;
-  status: string;
+  status: boolean;
   startTime: Date;
   endTime: Date;
   sitesCrawledCount: number;
   websiteRecordId: number;
 
-  constructor(
+  public constructor(
     id: number,
-    status: string,
+    status: boolean,
     startTime: Date,
     endTime: Date,
     sitesCrawledCount: number,
@@ -22,6 +22,10 @@ export default class Execution {
     this.endTime = endTime;
     this.sitesCrawledCount = sitesCrawledCount;
     this.websiteRecordId = websiteRecordId;
+  }
+
+  public static getDefaultInstance(): Execution {
+    return new Execution(-1, false, null, null, -1, -1);
   }
 
   public static parseExecution(execution: ExecutionDB): Execution {
@@ -39,8 +43,8 @@ export default class Execution {
     return {
       execution_id: this.id,
       status: this.status,
-      start_time: this.startTime.toISOString(),
-      end_time: this.endTime.toISOString(),
+      start_time: this.startTime.toISOString().slice(0, 19).replace('T', ' '),
+      end_time: this.endTime.toISOString().slice(0, 19).replace('T', ' '),
       sites_crawled_count: this.sitesCrawledCount,
       record_id: this.websiteRecordId,
     };

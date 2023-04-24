@@ -13,7 +13,7 @@ export interface WebsiteRecordDB {
 
 export interface ExecutionDB {
   execution_id: number;
-  status: string;
+  status: boolean;
   start_time: string;
   end_time: string;
   sites_crawled_count: number;

@@ -15,7 +15,7 @@ class WebsiteRecordsAPI {
           res.status(500).send({ errorMsg: error });
           return;
         }
-        console.log("Website records fetched successfully!");
+        // console.log("Website records fetched successfully!");
         res.status(200).send({ websiteRecords: results });
       });
     });
@@ -115,7 +115,7 @@ class WebsiteRecordsAPI {
           return;
         }
         const msg = `Website record with ID: ${record.id} was successfully updated!`;
-        console.log(msg);
+        // console.log(msg);
         res.status(200).send(msg);
         return;
       });
@@ -177,7 +177,7 @@ class WebsiteRecordsAPI {
       periodicity: () => !isNaN(field as number),
       label: () => field !== undefined,
     };
-    console.log("Validating input: " + type + " with value: " + field);
+    // console.log("Validating input: " + type + " with value: " + field);
     return validation.hasOwnProperty(type) ? validation[type]() : false;
   }
 }
