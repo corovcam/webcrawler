@@ -47,7 +47,6 @@ class WebsiteRecordsAPI {
 
     // POST request to add a new website record
     app.post("/add-website-record", async (req: Request, res: Response) => {
-      console.log(JSON.stringify(req.body, null, 2));
       const record: WebsiteRecord = this.validateAndParseWebsiteRecord(
         req.body
       );
@@ -86,7 +85,7 @@ class WebsiteRecordsAPI {
       const record: WebsiteRecord = this.validateAndParseWebsiteRecord(
         req.body
       );
-
+      console.log(record.crawledData);
       const query = `UPDATE website_records 
             SET url = ?, boundary_regexp = ?, periodicity = ?, label = ?, is_active = ?, is_being_crawled = ?, tags = JSON_ARRAY(?), crawled_data = ?, request_do_crawl = ? 
             WHERE record_id = ?;`;
@@ -98,7 +97,7 @@ class WebsiteRecordsAPI {
         record.isActive,
         record.isBeingCrawled,
         record.tags,
-        record.crawledData,
+        typeof record.crawledData === "string" ? record.crawledData : JSON.stringify(record.crawledData),
         record.requestDoCrawl,
         record.id,
       ];

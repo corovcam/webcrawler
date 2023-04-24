@@ -10,7 +10,7 @@ export default class WebsiteRecord {
   isActive: boolean;
   isBeingCrawled: boolean;
   tags: string[];
-  crawledData: WebNode[];
+  crawledData: WebNode[] | string;
   requestDoCrawl: boolean;
   lastExecution?: Execution;
 
@@ -23,7 +23,7 @@ export default class WebsiteRecord {
     isActive: boolean,
     isBeingCrawled: boolean,
     tags: string[],
-    crawledData: WebNode[],
+    crawledData: WebNode[] | string,
     requestDoCrawl: boolean,
     lastExecution?: Execution
   ) {
@@ -52,7 +52,7 @@ export default class WebsiteRecord {
       typeof websiteRecord.tags === "string"
         ? websiteRecord.tags.split(" ")
         : websiteRecord.tags,
-      JSON.parse(websiteRecord.crawled_data),
+      websiteRecord.crawled_data,
       websiteRecord.request_do_crawl ?? false
     );
   }
