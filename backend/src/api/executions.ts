@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import { OkPacket, Pool, ResultSetHeader } from "mysql2";
-import { Execution } from "../../@types/index";
+import Execution from "../model/Execution";
 
 // Implements GET, GET last execution, get execution for a specific website record and POST API endpoints for executions
 class ExecutionsAPI {
@@ -20,23 +20,30 @@ class ExecutionsAPI {
     });
 
     // GET request to get the last execution
-    app.get("/last-execution", async (req: Request, res: Response) => {
-      const query =
-        "SELECT * FROM executions ORDER BY execution_id DESC LIMIT 1;";
+    app.get(
+      "/last-execution/website-record/:id",
+      async (req: Request, res: Response) => {
+        const query =
+          "SELECT * FROM executions WHERE record_id = ? ORDER BY execution_id DESC LIMIT 1;";
 
-      db.query(query, function (error, results: OkPacket[], _) {
-        if (error) {
-          res.status(500).send({ errorMsg: error });
-          return;
-        }
-        if (results.length === 0) {
-          res.status(200).send({ execution: null });
-          return;
-        }
-        console.log("Last execution fetched successfully!");
-        res.status(200).send({ execution: results[0] });
-      });
-    });
+        db.query(
+          query,
+          [req.params.id],
+          function (error, results: OkPacket[], _) {
+            if (error) {
+              res.status(500).send({ errorMsg: error });
+              return;
+            }
+            console.log(
+              `Last Execution for website record ${req.params.id} fetched successfully!`
+            );
+            res
+              .status(200)
+              .send({ execution: results.length != 0 ? results[0] : null });
+          }
+        );
+      }
+    );
 
     // GET request to get all executions for a specific website record ordered by end time descending
     app.get(

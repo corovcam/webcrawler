@@ -1,6 +1,7 @@
 import { Express, Request, Response } from "express";
 import { OkPacket, Pool, ResultSetHeader } from "mysql2";
-import { WebsiteRecord } from "../../@types/index";
+import { WebsiteRecordDB } from "../../@types/index";
+import WebsiteRecord from "../model/WebsiteRecord";
 
 // Implements GET, DELETE and POST API endpoints for website records
 class WebsiteRecordsAPI {
@@ -39,7 +40,7 @@ class WebsiteRecordsAPI {
           }
           const message = `Record ${req.params.id} deleted successfully!`;
           console.log(message);
-          res.status(200).send({ data: message });
+          res.status(200).send(message);
         }
       );
     });
@@ -75,7 +76,7 @@ class WebsiteRecordsAPI {
           results.insertId +
           " was successfully created!";
         console.log(msg);
-        res.status(200).send({ data: msg });
+        res.status(200).send({ recordId: results.insertId, message: msg });
         return;
       });
     });
@@ -113,9 +114,9 @@ class WebsiteRecordsAPI {
           });
           return;
         }
-        let msg = `Website record with ID: ${record.id} was successfully updated!`;
+        const msg = `Website record with ID: ${record.id} was successfully updated!`;
         console.log(msg);
-        res.status(200).send({ data: msg });
+        res.status(200).send(msg);
         return;
       });
     });
@@ -143,35 +144,23 @@ class WebsiteRecordsAPI {
             }
             const message = `Record ${req.params.id} successfully requested for crawling!`;
             console.log(message);
-            res.status(200).send({ data: message });
+            res.status(200).send(message);
           }
         );
       }
     );
   }
 
-  private static validateAndParseWebsiteRecord(websiteRecord): WebsiteRecord {
+  private static validateAndParseWebsiteRecord(
+    websiteRecord: WebsiteRecordDB
+  ): WebsiteRecord {
     if (
       this.isValidInput("url", websiteRecord.url) &&
       this.isValidInput("regexp", websiteRecord.boundary_regexp) &&
       this.isValidInput("periodicity", websiteRecord.periodicity) &&
       this.isValidInput("label", websiteRecord.label)
     ) {
-      return {
-        id: websiteRecord.record_id,
-        url: websiteRecord.url,
-        boundaryRegExp: websiteRecord.boundary_regexp,
-        periodicity: websiteRecord.periodicity,
-        label: websiteRecord.label,
-        isActive: websiteRecord.is_active,
-        isBeingCrawled: websiteRecord.is_being_crawled ?? false,
-        tags:
-          websiteRecord.tags.constructor !== Array
-            ? websiteRecord.tags.split(" ")
-            : websiteRecord.tags,
-        crawledData: JSON.stringify(websiteRecord.crawled_data),
-        requestDoCrawl: websiteRecord.request_do_crawl ?? false,
-      };
+      return WebsiteRecord.parseRecord(websiteRecord);
     }
     return null;
   }
