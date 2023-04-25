@@ -1,5 +1,5 @@
 import Execution from "./Execution";
-import { WebsiteRecordDB, WebNode } from "../../@types/index";
+import { WebsiteRecordDB, IWebNode } from "../../@types/index";
 
 export default class WebsiteRecord {
   id: number;
@@ -10,7 +10,7 @@ export default class WebsiteRecord {
   isActive: boolean;
   isBeingCrawled: boolean;
   tags: string[];
-  crawledData: WebNode[] | string;
+  crawledData: IWebNode[] | string;
   requestDoCrawl: boolean;
   lastExecution?: Execution;
 
@@ -23,7 +23,7 @@ export default class WebsiteRecord {
     isActive: boolean,
     isBeingCrawled: boolean,
     tags: string[],
-    crawledData: WebNode[] | string,
+    crawledData: IWebNode[] | string,
     requestDoCrawl: boolean,
     lastExecution?: Execution
   ) {

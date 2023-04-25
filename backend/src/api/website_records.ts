@@ -50,7 +50,6 @@ class WebsiteRecordsAPI {
       const record: WebsiteRecord = this.validateAndParseWebsiteRecord(
         req.body
       );
-      console.log(record);
       const query = `INSERT INTO website_records(url, boundary_regexp, periodicity, label, is_active, is_being_crawled, tags, crawled_data, request_do_crawl) 
             VALUES (?,?,?,?,?,?,JSON_ARRAY(?),?,?);`;
       const params = [
@@ -85,7 +84,6 @@ class WebsiteRecordsAPI {
       const record: WebsiteRecord = this.validateAndParseWebsiteRecord(
         req.body
       );
-      console.log(record.crawledData);
       const query = `UPDATE website_records 
             SET url = ?, boundary_regexp = ?, periodicity = ?, label = ?, is_active = ?, is_being_crawled = ?, tags = JSON_ARRAY(?), crawled_data = ?, request_do_crawl = ? 
             WHERE record_id = ?;`;

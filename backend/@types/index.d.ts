@@ -20,13 +20,13 @@ export interface ExecutionDB {
   record_id: number;
 }
 
-export interface WebNode {
+export interface IWebNode {
   url: string;
   title: string;
   crawlTime: number;
-  wasCrawled: boolean;
+  isBoundary: boolean;
   executionId: number;
-  nodes: WebNode[];
+  links: string[];
 }
 
 export interface AddRecordResponse {
