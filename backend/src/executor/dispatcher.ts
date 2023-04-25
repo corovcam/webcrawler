@@ -1,87 +1,128 @@
 import { parentPort } from "worker_threads";
+import workerpool from "workerpool";
 import axios from "axios";
+import {
+  addExecution,
+  getLastExecutionForWebsiteRecord,
+  getWebsiteRecords,
+  updateWebsiteRecord,
+} from "./api_calls";
+import WebsiteRecord from "../model/WebsiteRecord";
+import Execution from "../model/Execution";
+import { IWebNode } from "../../@types";
 
-export default function runDispatcherWorker() {
-  axios.defaults.baseURL = "http://127.0.0.1:3001";
-  axios.defaults.headers.post["Content-Type"] = "application/json";
+export default class Dispatcher {
+  private recordExecutions: Record<number, number> = {};
+  private readonly pool = workerpool.pool(__dirname + "/crawl_worker.js");
 
-  // Test Website Record API calls
-  parentPort.on("message", async (message: string) => {
-    console.log("Worker thread received message: " + message);
+  constructor() {
+    axios.defaults.baseURL = "http://127.0.0.1:3001";
+    axios.defaults.headers.post["Content-Type"] = "application/json";
+  }
 
-    let records = await axios
-      .get("/website-records/")
-      .then((response) => response.data.websiteRecords)
-      .catch((error) => console.log(error.response.data.errorMsg));
-    console.log(
-      "Worker thread fetched website records: \n" +
-        JSON.stringify(records, null, 2)
-    );
+  public runDispatcherWorker() {
+    parentPort.on("message", async (message: string) => {
+      console.log("Worker thread received message: " + message);
 
-    console.log("Worker thread adding a new website record...");
-    let record = records[0];
-    console.log(record);
-    await axios
-      .post("/add-website-record/", JSON.stringify(record))
-      .then((response) => console.log(response.data.data))
-      .catch((error) => console.log(error.response.data.errorMsg));
+      this.startDispatcher();
 
-    record = records[3];
-    record.request_do_crawl = true;
-    console.log(record);
-    await axios
-      .post("/update-website-record/", JSON.stringify(record))
-      .then((response) => console.log(response.data.data))
-      .catch((error) => console.log(error.response.data.errorMsg));
+      while (true) {
+        const queueOfRecords: WebsiteRecord[] = [];
+        const records = await getWebsiteRecords();
+        if (!records) continue;
 
-    // await axios
-    //   .delete(`/delete-website-record/${records.length}`)
-    //   .then((response) => console.log(response.data.data))
-    //   .catch((error) => console.log(error.response.data.errorMsg));
+        for (let i = 0; i < records.length; i++) {
+          const record = records[i];
+          const lastExecution = await getLastExecutionForWebsiteRecord(
+            record.id
+          );
+          if (lastExecution && this.recordExecutions[record.id] === lastExecution.id) {
+            if (!record.requestDoCrawl) continue;
+          }
+          record.lastExecution = lastExecution ?? null;
 
-    // Test /crawl-website-record/:id API call
-    await axios
-      .get("/crawl-website-record/1")
-      .then((response) => console.log(response.data.data))
-      .catch((error) => console.log(error.response.data.errorMsg));
+          if (this.crawlCheck(record)) {
+            record.isBeingCrawled = true;
+            record.requestDoCrawl = false;
+            await updateWebsiteRecord(record.convertToWebsiteRecordDB());
+            queueOfRecords.push(record);
+          }
+        }
 
-    // Text execution API calls
-    let executions = await axios
-      .get("/executions/")
-      .then((response) => response.data.executions)
-      .catch((error) => console.log(error.response.data.errorMsg));
-    console.log(
-      "Worker thread fetched executions: \n" +
-        JSON.stringify(executions, null, 2)
-    );
+        if (queueOfRecords.length > 0) {
+          console.log(
+            "Queue contains records. Crawling...",
+            queueOfRecords.length
+          );
+          this.startCrawler(queueOfRecords);
+        }
+      }
+    });
+  }
 
-    console.log("Worker thread adding a new execution...");
-    let execution = executions[0];
-    console.log(execution);
-    await axios
-      .post("/add-execution/", JSON.stringify(execution))
-      .then((response) => console.log(response.data.data))
-      .catch((error) => console.log(error.response.data.errorMsg));
+  private async startDispatcher() {
+    let records = await getWebsiteRecords();
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      const lastExecution = await getLastExecutionForWebsiteRecord(record.id);
+      this.recordExecutions[record.id] = lastExecution?.id;
+    }
+  }
 
-    let lastExecution = await axios
-      .get("/last-execution/")
-      .then((response) => response.data.execution)
-      .catch((error) => console.log(error.response.data.errorMsg));
-    console.log(
-      "Worker thread fetched last execution: \n" +
-        JSON.stringify(lastExecution, null, 2)
-    );
+  private crawlCheck(record: WebsiteRecord): boolean {
+    if (record.requestDoCrawl) return true;
 
-    let executionsForRecord = await axios
-      .get("/executions/website-record/1")
-      .then((response) => response.data.executions)
-      .catch((error) => console.log(error.response.data.errorMsg));
-    console.log(
-      "Worker thread fetched executions for website record 1: \n" +
-        JSON.stringify(executionsForRecord, null, 2)
-    );
-    
-  });
+    if (!record.isActive || record.isBeingCrawled) return false;
+
+    if (!record.lastExecution) return true;
+
+    const currentTime = new Date(Date.now());
+    const lastExecutionEndTime = record.lastExecution.endTime;
+    const minuteDifference = new Date(
+      Math.floor(currentTime.getTime() - lastExecutionEndTime.getTime())
+    ).getMinutes();
+    if (minuteDifference >= record.periodicity) return true;
+
+    return false;
+  }
+
+  private startCrawler(records: WebsiteRecord[]) {
+    for (let i = 0; i < records.length; i++) {
+      let index = i;
+      const record = records[index];
+
+      record.isBeingCrawled = true;
+      record.lastExecution = Execution.getDefaultInstance();
+      record.lastExecution.startTime = new Date(Date.now());
+
+      this.pool
+        .proxy()
+        .then(async (worker) => {
+          return await worker.runCrawlWorker(record);
+        })
+        .then(async (nodes: Promise<IWebNode[]>) => {
+          const crawledNodes = await nodes;
+          if (crawledNodes.length > 0) {
+            record.lastExecution.sitesCrawledCount = crawledNodes.length;
+            record.lastExecution.endTime = new Date(Date.now());
+            record.lastExecution.status = false;
+            record.lastExecution.websiteRecordId = record.id;
+
+            record.crawledData = crawledNodes;
+            record.isBeingCrawled = false;
+
+            await updateWebsiteRecord(record.convertToWebsiteRecordDB());
+            const executionId = await addExecution(
+              record.lastExecution.convertToExecutionDB()
+            );
+
+            this.recordExecutions[record.id] = executionId;
+          }
+        })
+        .catch((err) => console.log(err));
+      console.log("Crawl started for record: " + record.id);
+    }
+  }
 }
 
-runDispatcherWorker();
+new Dispatcher().runDispatcherWorker();
