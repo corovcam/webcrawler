@@ -31,7 +31,7 @@ export default class CrawlWorker {
     const node = new WebNode();
     node.url = url;
 
-    if (!response) {
+    if (response == null) {
       node.title = `[ERROR ${response.status} - ${response.statusText}]`;
       node.crawlTime = 0;
       node.links = [];
