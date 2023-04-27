@@ -1,6 +1,8 @@
 import { parentPort } from "worker_threads";
 import workerpool, { WorkerPool } from "workerpool";
 import axios from "axios";
+import neo_driver from "../database/neo4j_config";
+import neo4j, { Session } from "neo4j-driver";
 import {
   addExecution,
   getLastExecutionForWebsiteRecord,
@@ -34,7 +36,7 @@ export default class Dispatcher {
           console.log("Error fetching records. Retrying...");
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
-         }
+        }
         if (!records) continue;
 
         for (let i = 0; i < records.length; i++) {
@@ -48,7 +50,7 @@ export default class Dispatcher {
             await new Promise((resolve) => setTimeout(resolve, 1000));
             i--;
             continue;
-           }
+          }
           if (lastExecution && this.recordExecutions[record.id] === lastExecution.id) {
             if (!record.requestDoCrawl) continue;
           }
@@ -132,7 +134,7 @@ export default class Dispatcher {
   }
 
   private startCrawler(records: WebsiteRecord[]) {
-    const pool = workerpool.pool(__dirname + "/crawl_worker.js");
+    const pool: WorkerPool = workerpool.pool(__dirname + "/crawl_worker.js");
     const tasks: workerpool.Promise<any, Error>[] = [];
 
     for (let i = 0; i < records.length; i++) {
@@ -159,12 +161,14 @@ export default class Dispatcher {
 
               record.crawledData = crawledNodes;
               record.isBeingCrawled = false;
-
+              
               if (!await this.handleIncrementalWrite(updateWebsiteRecord, record.convertToWebsiteRecordDB()))
                 return;
               const executionId = await this.handleIncrementalWrite(addExecution, record.lastExecution.convertToExecutionDB());
               if (!executionId)
                 return;
+
+              await this.writeToNeo4j(crawledNodes, executionId);
 
               this.recordExecutions[record.id] = executionId;
             }
@@ -177,6 +181,57 @@ export default class Dispatcher {
       console.log("All tasks finished. Terminating pool...");
       pool.terminate();
     });
+  }
+
+  // Creates a graph of the crawled nodes and writes it to Neo4j
+  // Each node is identified by its URL
+  // Merge nodes with the same URL and add a relationship between them
+  private async writeToNeo4j(nodes: IWebNode[], executionId: number) {
+    const session = neo_driver.session({
+      database: 'neo4j',
+      defaultAccessMode: neo4j.session.WRITE
+    });
+
+    const createNodesQuery = `
+      UNWIND $nodes AS node
+      MERGE (n:Node {url: node.url, executionId: $executionId})
+      ON CREATE SET n.url = node.url, n.title = node.title, n.crawlTime = node.crawlTime, n.executionId = $executionId
+      RETURN n
+    `;
+
+    const createRelationshipsQuery = `
+      UNWIND $nodes AS node
+      UNWIND node.links AS link
+      MATCH (n:Node {url: node.url, executionId: $executionId})
+      MATCH (l:Node {url: link, executionId: $executionId})
+      MERGE (n)-[:LINKS_TO]->(l)
+    `;
+
+    try {
+      await session.run(createNodesQuery, {
+        nodes: nodes.map((node) => {
+          return {
+            url: node.url,
+            title: node.title,
+            crawlTime: node.crawlTime,
+          };
+        }),
+        executionId,
+      });
+      await session.run(createRelationshipsQuery, {
+        nodes: nodes.map((node) => {
+          return {
+            url: node.url,
+            links: node.links,
+          };
+        }),
+        executionId,
+      });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      await session.close();
+    }
   }
 }
 

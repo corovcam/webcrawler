@@ -12,7 +12,7 @@ export default class CrawlWorker {
 
   public async runCrawlWorker(record: WebsiteRecord): Promise<IWebNode[]> {
     console.log(`Crawl worker started for record: ${record.id} - ${record.url}`)
-
+    
     return await this.fetchAndCrawl(record.url, record.boundaryRegExp);
   }
 
@@ -23,7 +23,7 @@ export default class CrawlWorker {
 
   private async parseAndProcessSite(response: AxiosResponse<any, any>, url: string, regex: string): Promise<IWebNode[]> {
     if (this.linksToProcess === 1 && this.nodes.length > 1) {
-      console.log(`Emit nodes: ${this.nodes.length}`);
+      console.log(`Number of nodes crawled: ${this.nodes.length}`);
       return this.nodes;
     }
 
@@ -41,9 +41,9 @@ export default class CrawlWorker {
       return this.nodes;
     }
 
-    if (this.crawledSites[url]) 
+    if (this.crawledSites[url])
       return;
-    
+
     this.crawledSites[url] = true;
     node.setStartTime();
     node.isBoundary = true;
@@ -92,7 +92,7 @@ export default class CrawlWorker {
       .catch((err) => {
         return err.response;
       });
-    
+
     if (!response || response.status !== 200) {
       console.log(`Error fetching data from ${url} [${response.status} - ${response.statusText}]`);
       return;
