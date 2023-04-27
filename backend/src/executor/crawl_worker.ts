@@ -11,7 +11,7 @@ export default class CrawlWorker {
   private linksToProcess = 1;
 
   public async runCrawlWorker(record: WebsiteRecord): Promise<IWebNode[]> {
-    console.log("Crawl worker started for: " + record.url)
+    console.log(`Crawl worker started for record: ${record.id} - ${record.url}`)
 
     return await this.fetchAndCrawl(record.url, record.boundaryRegExp);
   }

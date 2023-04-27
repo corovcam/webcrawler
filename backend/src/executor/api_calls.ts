@@ -22,7 +22,8 @@ export async function getWebsiteRecords(): Promise<WebsiteRecord[]> {
     );
     return parsedRecords;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -37,7 +38,8 @@ export async function addWebsiteRecord(
     );
     return await response.data;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -52,7 +54,8 @@ export async function updateWebsiteRecord(
     );
     return await response.data;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -62,7 +65,8 @@ export async function deleteWebsiteRecord(id: number): Promise<string> {
     const response = await axios.delete(`/delete-website-record/${id}`);
     return await response.data;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -72,7 +76,8 @@ export async function crawlWebsiteRecord(id: number): Promise<string> {
     const response = await axios.get(`/crawl-website-record/${id}`);
     return await response.data;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -88,7 +93,8 @@ export async function getExecutions(): Promise<Execution[]> {
     );
     return parsedExecutions;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -101,7 +107,8 @@ export async function addExecution(execution: ExecutionDB): Promise<number> {
     );
     return await response.data.executionId;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -114,7 +121,8 @@ export async function getLastExecutionForWebsiteRecord(
     const execution: ExecutionDB = await response.data.execution;
     return execution ? Execution.parseExecution(execution) : null;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }
 
@@ -132,6 +140,7 @@ export async function getExecutionsForWebsiteRecord(
     );
     return parsedExecutions;
   } catch (error) {
-    console.log(error);
+    console.log(error?.response?.data?.errorMsg);
+    throw new Error(error?.response?.data?.errorMsg);
   }
 }

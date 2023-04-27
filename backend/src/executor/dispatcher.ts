@@ -1,5 +1,5 @@
 import { parentPort } from "worker_threads";
-import workerpool from "workerpool";
+import workerpool, { WorkerPool } from "workerpool";
 import axios from "axios";
 import {
   addExecution,
@@ -9,11 +9,10 @@ import {
 } from "./api_calls";
 import WebsiteRecord from "../model/WebsiteRecord";
 import Execution from "../model/Execution";
-import { IWebNode } from "../../@types";
+import { ExecutionDB, IWebNode, WebsiteRecordDB } from "../../@types";
 
 export default class Dispatcher {
   private recordExecutions: Record<number, number> = {};
-  private readonly pool = workerpool.pool(__dirname + "/crawl_worker.js");
 
   constructor() {
     axios.defaults.baseURL = "http://127.0.0.1:3001";
@@ -24,18 +23,32 @@ export default class Dispatcher {
     parentPort.on("message", async (message: string) => {
       console.log("Worker thread received message: " + message);
 
-      this.startDispatcher();
+      await this.startDispatcher();
 
       while (true) {
         const queueOfRecords: WebsiteRecord[] = [];
-        const records = await getWebsiteRecords();
+        let records: WebsiteRecord[];
+        try {
+          records = await getWebsiteRecords();
+        } catch (e) {
+          console.log("Error fetching records. Retrying...");
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+         }
         if (!records) continue;
 
         for (let i = 0; i < records.length; i++) {
           const record = records[i];
-          const lastExecution = await getLastExecutionForWebsiteRecord(
-            record.id
-          );
+
+          let lastExecution: Execution;
+          try {
+            lastExecution = await getLastExecutionForWebsiteRecord(record.id);
+          } catch (e) {
+            console.log("Error fetching last execution. Retrying...");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            i--;
+            continue;
+           }
           if (lastExecution && this.recordExecutions[record.id] === lastExecution.id) {
             if (!record.requestDoCrawl) continue;
           }
@@ -44,7 +57,10 @@ export default class Dispatcher {
           if (this.crawlCheck(record)) {
             record.isBeingCrawled = true;
             record.requestDoCrawl = false;
-            await updateWebsiteRecord(record.convertToWebsiteRecordDB());
+            if (!await this.handleIncrementalWrite(
+              updateWebsiteRecord, record.convertToWebsiteRecordDB()
+            ))
+              continue;
             queueOfRecords.push(record);
           }
         }
@@ -61,11 +77,40 @@ export default class Dispatcher {
   }
 
   private async startDispatcher() {
-    let records = await getWebsiteRecords();
-    for (let i = 0; i < records.length; i++) {
-      const record = records[i];
-      const lastExecution = await getLastExecutionForWebsiteRecord(record.id);
-      this.recordExecutions[record.id] = lastExecution?.id;
+    try {
+      let records = await getWebsiteRecords();
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        const lastExecution = await getLastExecutionForWebsiteRecord(record.id);
+        this.recordExecutions[record.id] = lastExecution?.id;
+      }
+      console.log("Dispatcher started.");
+    } catch (e) {
+      console.log("Error starting dispatcher. Retrying...");
+      // Schedule startDispatcher retry after 5 seconds to avoid spamming the server
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await this.startDispatcher();
+    }
+  }
+
+  private async handleIncrementalWrite(apiCall: (data: any) => any, data: WebsiteRecordDB | ExecutionDB) {
+    try {
+      return await apiCall(data);
+    } catch (error) { // Retry incrementally if update fails
+      let retryCount = 1;
+      while (retryCount < 6) {
+        console.log(`Retrying '${apiCall.name}'... Attempt ${retryCount}/5`)
+        try {
+          return await apiCall(data);
+        } catch (e) {
+          retryCount++;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+      if (retryCount == 6) {
+        console.log(`'${apiCall.name}' failure. Skipping...`);
+        return null;
+      }
     }
   }
 
@@ -87,6 +132,9 @@ export default class Dispatcher {
   }
 
   private startCrawler(records: WebsiteRecord[]) {
+    const pool = workerpool.pool(__dirname + "/crawl_worker.js");
+    const tasks: workerpool.Promise<any, Error>[] = [];
+
     for (let i = 0; i < records.length; i++) {
       let index = i;
       const record = records[index];
@@ -95,33 +143,40 @@ export default class Dispatcher {
       record.lastExecution = Execution.getDefaultInstance();
       record.lastExecution.startTime = new Date(Date.now());
 
-      this.pool
-        .proxy()
-        .then(async (worker) => {
-          return await worker.runCrawlWorker(record);
-        })
-        .then(async (nodes: Promise<IWebNode[]>) => {
-          const crawledNodes = await nodes;
-          if (crawledNodes.length > 0) {
-            record.lastExecution.sitesCrawledCount = crawledNodes.length;
-            record.lastExecution.endTime = new Date(Date.now());
-            record.lastExecution.status = false;
-            record.lastExecution.websiteRecordId = record.id;
+      const task =
+        pool
+          .proxy()
+          .then(async (worker) => {
+            return await worker.runCrawlWorker(record);
+          })
+          .then(async (nodes: Promise<IWebNode[]>) => {
+            const crawledNodes = await nodes;
+            if (crawledNodes.length > 0) {
+              record.lastExecution.sitesCrawledCount = crawledNodes.length;
+              record.lastExecution.endTime = new Date(Date.now());
+              record.lastExecution.status = false;
+              record.lastExecution.websiteRecordId = record.id;
 
-            record.crawledData = crawledNodes;
-            record.isBeingCrawled = false;
+              record.crawledData = crawledNodes;
+              record.isBeingCrawled = false;
 
-            await updateWebsiteRecord(record.convertToWebsiteRecordDB());
-            const executionId = await addExecution(
-              record.lastExecution.convertToExecutionDB()
-            );
+              if (!await this.handleIncrementalWrite(updateWebsiteRecord, record.convertToWebsiteRecordDB()))
+                return;
+              const executionId = await this.handleIncrementalWrite(addExecution, record.lastExecution.convertToExecutionDB());
+              if (!executionId)
+                return;
 
-            this.recordExecutions[record.id] = executionId;
-          }
-        })
-        .catch((err) => console.log(err));
-      console.log("Crawl started for record: " + record.id);
+              this.recordExecutions[record.id] = executionId;
+            }
+          })
+          .catch((err) => console.log(err));
+      tasks.push(task);
     }
+
+    Promise.all(tasks).then(() => {
+      console.log("All tasks finished. Terminating pool...");
+      pool.terminate();
+    });
   }
 }
 
