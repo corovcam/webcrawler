@@ -1,0 +1,327 @@
+openapi: 3.0.0
+info:
+  title: Website Records and Executions API
+  version: 1.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/corovcam/Webcrawler/1.0.0
+  - url: http://127.0.0.1:3001
+    description: WebCrawler backend API Server
+paths:
+  /website-records:
+    get:
+      summary: Get all website records
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  websiteRecords:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebsiteRecord'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /delete-website-record/{id}:
+    delete:
+      summary: Delete a specific website record
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /add-website-record:
+    post:
+      summary: Add a new website record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteRecord'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recordId:
+                    type: integer
+                  message:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /update-website-record:
+    post:
+      summary: Update an existing website record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebsiteRecord'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /crawl-website-record/{id}:
+    get:
+      summary: Request to crawl a specific website record (by ID)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /executions:
+    get:
+      summary: Get all executions
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Execution'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /last-execution/website-record/{id}:
+    get:
+      summary: Get the last execution for a specific website record
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  execution:
+                    $ref: '#/components/schemas/Execution'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+  /executions/website-record/{id}:
+    get:
+      summary: Get all executions for a specific website record ordered by end time descending
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation     
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Execution'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+  /add-execution:
+    post:
+      summary: Add a new execution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Execution'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executionId:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
+components:
+  schemas:
+    WebsiteRecord:
+      type: object
+      properties:
+        record_id:
+          type: integer
+        url:
+          type: string
+        boundary_regexp:
+          type: string
+        periodicity:
+          type: integer
+        label:
+          type: string
+        is_active:
+          type: boolean
+        is_being_crawled:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        crawled_data:
+          type: string
+        request_do_crawl:
+          type: boolean
+    Execution:
+      type: object
+      properties:
+        execution_id:
+          type: integer
+        status:
+          type: integer
+        start_time:
+          type: string
+        end_time:
+          type: string
+        sites_crawled_count:
+          type: integer
+        record_id:
+          type: integer
