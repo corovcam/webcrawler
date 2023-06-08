@@ -9,7 +9,6 @@ COPY package*.json /
 
 # install and start as production build
 FROM base as production
-ENV NODE_ENV=production
 RUN npm ci
 COPY . .
 CMD ["npm", "start"]
@@ -17,6 +16,7 @@ CMD ["npm", "start"]
 # install and start as development build
 FROM base as dev
 ENV NODE_ENV=development
+ENV DEBUG=nodejs-docker-express:*
 RUN npm install -g nodemon && npm install
 COPY . .
 CMD ["npm", "run", "dev"]

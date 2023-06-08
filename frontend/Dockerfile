@@ -1,17 +1,14 @@
-# pull official base image
-FROM node:19-alpine
-
-# set working directory
+# build stage
+FROM node:19-alpine as build
 WORKDIR /webcrawler/frontend
-
-# copy dependencies
 COPY package*.json /
-
-# install app dependencies
 RUN npm install
-
-# add app
 COPY . .
+RUN npm run build
 
-# start app
-CMD ["npm", "start"]
+# production stage
+FROM nginx:1.25.0-alpine
+COPY --from=build /webcrawler/frontend/build /usr/share/nginx/html
+COPY --from=build /webcrawler/frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

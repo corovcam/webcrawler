@@ -4,7 +4,7 @@ services:
   backend:
     build: 
       context: ./backend
-      target: dev
+      target: production
     restart: unless-stopped
     env_file: ./.env
     ports:
@@ -14,36 +14,39 @@ services:
       - './backend/src/:/webcrawler/backend/src/'
       - '/webcrawler/backend/node_modules/'
     environment:
-      DB_HOST: localhost
+      DB_HOST: mysql
       DB_USER: $DB_USER
       DB_PASSWORD: $DB_PASSWORD
       DB_NAME: $DB_DATABASE
       DB_PORT: $DB_PORT
-      NODE_ENV: development
-      DEBUG: nodejs-docker-express:*
+      NEO4J_HOST: neo4j
+      NEO4J_USER: $NEO4J_USER
+      NEO4J_PASSWORD: $NEO4J_PASSWORD
+      NEO4J_PORT: $NEO4J_PORT
     networks:
       - backend-service
       - frontend-ui
     depends_on:
-      - database
+      - mysql
+      - neo4j
   frontend:
-    container_name: frontend
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     env_file: ./.env
     ports:
-      - 3000:3000
+      - 3000:80
     volumes:
       - './frontend/src/:/webcrawler/frontend/src/'
       - '/webcrawler/frontend/node_modules/'
     stdin_open: true
     environment:
-      CHOKIDAR_USEPOLLING: "true"
+      - CHOKIDAR_USEPOLLING=true
     networks:
       - frontend-ui
     depends_on:
       - backend
-  database:
+  mysql:
     image: mysql:8.0
     restart: unless-stopped
     env_file: ./.env
@@ -71,6 +74,18 @@ services:
       - NEO4J_dbms.memory.heap.initial_size=1G
       - NEO4J_dbms_memory_heap_max__size=1G
       - NEO4J_AUTH=neo4j/tazkeheslo
+    networks:
+      - backend-service
+      - frontend-ui
+  adminer:
+    image: adminer:4.8.1
+    restart: unless-stopped
+    ports:
+      - 8000:8080
+    depends_on:
+      - mysql
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
     networks:
       - backend-service
 volumes:
