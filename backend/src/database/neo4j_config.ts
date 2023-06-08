@@ -10,16 +10,17 @@ const neo_driver = neo4j.driver(`bolt://${host}:${port}`, neo4j.auth.basic(user,
 
 (async () => {
   const session = neo_driver
-  .session({
-    database: 'neo4j',
-    defaultAccessMode: neo4j.session.WRITE
-  });
+    .session({
+      database: 'neo4j',
+      defaultAccessMode: neo4j.session.WRITE
+    });
   try {
     await session.run(`
         CREATE CONSTRAINT url_executionId_idx IF NOT EXISTS FOR (n:Node) 
         REQUIRE (n.url, n.executionId) IS UNIQUE;`);
-    await session.run(`CREATE INDEX executionId_idx FOR (n:Node) ON (n.executionId);`);
-    } catch (e) {
+    await session.run(`
+        CREATE INDEX executionId_idx IF NOT EXISTS FOR (n:Node) ON (n.executionId);`);
+  } catch (e) {
     console.log(e);
   } finally {
     session.close();
