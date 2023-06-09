@@ -92,6 +92,17 @@ services:
       ADMINER_DEFAULT_SERVER: mysql
     networks:
       - backend-service
+  graphql:
+    build: ./graphql
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    volumes:
+      - '/webcrawler/graphql/node_modules/'
+    networks:
+      - backend-service
+    depends_on:
+      - backend
 volumes:
   db:
   neo4j_data:

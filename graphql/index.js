@@ -2,7 +2,7 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:3001";
+axios.defaults.baseURL = "http://backend:3001"; // Change to http://localhost:3001 if you want to run the backend locally
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
 const typeDefs = `#graphql

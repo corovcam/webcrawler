@@ -3,9 +3,6 @@ info:
   title: Website Records and Executions API
   version: 1.0.0
 servers:
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/corovcam/Webcrawler/1.0.0
   - url: http://127.0.0.1:3001
     description: WebCrawler backend API Server
 paths:
