@@ -168,7 +168,8 @@ export default class Dispatcher {
               if (!executionId)
                 return;
 
-              await this.writeToNeo4j(crawledNodes, executionId);
+              if (!await this.writeToNeo4j(crawledNodes, executionId))
+                throw new Error("Error writing Execution data to Neo4j.");
 
               this.recordExecutions[record.id] = executionId;
             }
@@ -186,7 +187,7 @@ export default class Dispatcher {
   // Creates a graph of the crawled nodes and writes it to Neo4j
   // Each node is identified by its URL
   // Merge nodes with the same URL and add a relationship between them
-  private async writeToNeo4j(nodes: IWebNode[], executionId: number) {
+  private async writeToNeo4j(nodes: IWebNode[], executionId: number) : Promise<boolean> {
     const session = neo_driver.session({
       database: 'neo4j',
       defaultAccessMode: neo4j.session.WRITE
@@ -207,31 +208,38 @@ export default class Dispatcher {
       MERGE (n)-[:LINKS_TO]->(l)
     `;
 
+    let txc_completed = true;
+    const txc = session.beginTransaction()
     try {
-      await session.run(createNodesQuery, {
+      await txc.run(createNodesQuery, {
         nodes: nodes.map((node) => {
           return {
             url: node.url,
             title: node.title,
-            crawlTime: node.crawlTime,
+            crawlTime: neo4j.int(node.crawlTime),
           };
         }),
-        executionId,
+        executionId: neo4j.int(executionId),
       });
-      await session.run(createRelationshipsQuery, {
+      await txc.run(createRelationshipsQuery, {
         nodes: nodes.map((node) => {
           return {
             url: node.url,
             links: node.links,
           };
         }),
-        executionId,
+        executionId: neo4j.int(executionId),
       });
+      await txc.commit();
     } catch (e) {
       console.log(e);
+      txc_completed = false;
+      await txc.rollback();
     } finally {
       await session.close();
     }
+
+    return txc_completed;
   }
 }
 
