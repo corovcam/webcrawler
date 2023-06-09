@@ -2,7 +2,7 @@ import { parentPort } from "worker_threads";
 import workerpool, { WorkerPool } from "workerpool";
 import axios from "axios";
 import neo_driver from "../database/neo4j_config";
-import neo4j, { Session } from "neo4j-driver";
+import neo4j from "neo4j-driver";
 import {
   addExecution,
   getLastExecutionForWebsiteRecord,
@@ -168,7 +168,7 @@ export default class Dispatcher {
               if (!executionId)
                 return;
 
-              if (!await this.writeToNeo4j(crawledNodes, executionId))
+              if (!await this.writeToNeo4j(crawledNodes, record.id))
                 throw new Error("Error writing Execution data to Neo4j.");
 
               this.recordExecutions[record.id] = executionId;
@@ -187,7 +187,7 @@ export default class Dispatcher {
   // Creates a graph of the crawled nodes and writes it to Neo4j
   // Each node is identified by its URL
   // Merge nodes with the same URL and add a relationship between them
-  private async writeToNeo4j(nodes: IWebNode[], executionId: number) : Promise<boolean> {
+  private async writeToNeo4j(nodes: IWebNode[], recordId: number) : Promise<boolean> {
     const session = neo_driver.session({
       database: 'neo4j',
       defaultAccessMode: neo4j.session.WRITE
@@ -195,16 +195,16 @@ export default class Dispatcher {
 
     const createNodesQuery = `
       UNWIND $nodes AS node
-      MERGE (n:Node {url: node.url, executionId: $executionId})
-      ON CREATE SET n.url = node.url, n.title = node.title, n.crawlTime = node.crawlTime, n.executionId = $executionId
+      MERGE (n:Node {url: node.url, recordId: $recordId})
+      ON CREATE SET n.url = node.url, n.title = node.title, n.crawlTime = node.crawlTime, n.recordId = $recordId
       RETURN n
     `;
 
     const createRelationshipsQuery = `
       UNWIND $nodes AS node
       UNWIND node.links AS link
-      MATCH (n:Node {url: node.url, executionId: $executionId})
-      MATCH (l:Node {url: link, executionId: $executionId})
+      MATCH (n:Node {url: node.url, recordId: $recordId})
+      MATCH (l:Node {url: link, recordId: $recordId})
       MERGE (n)-[:LINKS_TO]->(l)
     `;
 
@@ -219,7 +219,7 @@ export default class Dispatcher {
             crawlTime: neo4j.int(node.crawlTime),
           };
         }),
-        executionId: neo4j.int(executionId),
+        recordId: neo4j.int(recordId),
       });
       await txc.run(createRelationshipsQuery, {
         nodes: nodes.map((node) => {
@@ -228,7 +228,7 @@ export default class Dispatcher {
             links: node.links,
           };
         }),
-        executionId: neo4j.int(executionId),
+        recordId: neo4j.int(recordId),
       });
       await txc.commit();
     } catch (e) {

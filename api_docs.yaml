@@ -34,6 +34,44 @@ paths:
                   errorMsg:
                     type: string
 
+  /website-record/{id}:
+    get:
+      summary: Get a specific website record
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  websiteRecord:
+                    $ref: '#/components/schemas/WebsiteRecord'
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+
   /delete-website-record/{id}:
     delete:
       summary: Delete a specific website record
@@ -160,6 +198,35 @@ paths:
                 properties:
                   errorMsg:
                     type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errorMsg:
+                    type: string
+  
+  /get-crawled-data/{id}:
+    get:
+      summary: Get the crawled data for a specific website record
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NodeLinks'
+                    
         '500':
           description: Internal server error
           content:
@@ -325,3 +392,23 @@ components:
           type: integer
         record_id:
           type: integer
+    NodeLinks:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/Node'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'
+    Node:
+      type: object
+      properties:
+        recordId:
+          type: integer
+        crawlTime:
+          type: integer
+        title:
+          type: string
+        url:
+          type: string

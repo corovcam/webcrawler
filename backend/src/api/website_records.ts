@@ -1,5 +1,8 @@
 import { Express, Request, Response } from "express";
 import { OkPacket, Pool, ResultSetHeader } from "mysql2";
+import neo_driver from "../database/neo4j_config";
+import neo4j from "neo4j-driver";
+import { Result } from "neo4j-driver";
 import { WebsiteRecordDB } from "../../@types/index";
 import WebsiteRecord from "../model/WebsiteRecord";
 
@@ -20,8 +23,27 @@ class WebsiteRecordsAPI {
       });
     });
 
+    // GET request to get a specific website record
+    app.get("/website-record/:id", async (req: Request, res: Response) => {
+      const query = "SELECT * FROM website_records WHERE record_id = ?;";
+      db.query(query, [req.params.id], function (error, results: OkPacket, _) {
+        if (error) {
+          res.status(500).send({ errorMsg: error });
+          return;
+        }
+        if (results.affectedRows === 0) {
+          res
+            .status(404)
+            .send({ errorMsg: `Record ${req.params.id} not found!` });
+          return;
+        }
+        // console.log("Website record fetched successfully!");
+        res.status(200).send({ websiteRecord: results[0] });
+      });
+    });
+
     // DELETE request to delete a specific website record
-    app.delete("/delete-website-record/:id", async (req, res) => {
+    app.delete("/delete-website-record/:id", async (req: Request, res: Response) => {
       const query = "DELETE FROM website_records WHERE record_id = ?;";
 
       db.query(
@@ -146,6 +168,44 @@ class WebsiteRecordsAPI {
         );
       }
     );
+
+    // Request to get the crawled data of a specific website record (by ID) from Neo4j database
+    app.get(
+      "/get-crawled-data/:id",
+      async (req: Request, res: Response) => {
+        const session = neo_driver.session({
+          database: 'neo4j',
+          defaultAccessMode: neo4j.session.READ
+        });
+
+        const query = `
+        MATCH (n:Node {recordId: $recordId})
+        OPTIONAL MATCH (n)-[:LINKS_TO]->(m:Node {recordId: $recordId})
+        WITH n, collect(DISTINCT properties(m)) AS links
+        RETURN properties(n), links;`;
+
+        session
+          .run(query, { recordId: neo4j.int(req.params.id) })
+          .then((result) => {
+            const data = result.records.map((record) => {
+              const node = record.get(0);
+              const links = record.get(1);
+              
+              return {
+                node: node,
+                links: links,
+              };
+            });
+            res.status(200).send(data);
+          })
+          .catch((error) => {
+            res.status(500).send({ errorMsg: error });
+          })
+          .finally(() => {
+            session.close();
+          });
+      }
+    )
   }
 
   private static validateAndParseWebsiteRecord(
