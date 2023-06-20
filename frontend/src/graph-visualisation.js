@@ -7,7 +7,7 @@ import { getPreparedDataForGraphVisualisation } from "./prepare-graph-data";
 
 
 export function GraphVisualisationFromIds({graphIds, baseUrl, nodeClickFunction, backgroundClickFunction}){
-    let graphData = [];
+    const [graphData, setGraphData] = React.useState([]);
 
     React.useEffect(() => {
         let ignore = false;
@@ -61,10 +61,10 @@ export function GraphVisualisationFromIds({graphIds, baseUrl, nodeClickFunction,
                                     };
                                 }
 
-                                graphData.push({
+                                setGraphData([...graphData, {
                                     'node': newNode,
                                     'links': newLinks
-                                })
+                                }]);
                             })
     
     
