@@ -354,18 +354,7 @@ function SelectedNodeFromGraph({node, baseUrl}){
                                 <Button 
                                     size="large" 
                                     variant="outlined"
-                                    onClick={async () => {
-                                        try{
-                                            const response = await fetch(`${baseUrl}/crawl-website-record/${node.recordId}`, {method: 'GET'});
-
-                                            if (!response.ok) {
-                                                alert(`Error! status: ${response.status}`);
-                                            }
-                                        }
-                                        catch (err){
-                                            console.log(err);
-                                            alert("ERROR crawl record!");
-                                        }
+                                    onClick={()=>{
                                         
                                     }}>
                                     SHOW EXECUTION VIEW
