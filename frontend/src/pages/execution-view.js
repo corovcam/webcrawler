@@ -306,8 +306,8 @@ export default function ExecutionView({recordId}){
 
   
 
-    // <GraphVisualisation graph={requestedNodeLinks} nodeClickFunction={(node) => setClickedgraphNode(node)} backGroundClickFunction={() => setClickedgraphNode(null)}/>
-    // <GraphVisualisationFromIds graphIds={idsForGraph} baseUrl={baseUrl} backgroundClickFunction={() => setClickedgraphNode(null)} nodeClickFunction={(node) => setClickedgraphNode(node)}/>
+    // <GraphVisualisation graph={requestedNodeLinks} />
+    // <GraphVisualisationFromIds graphIds={idsForGraph} />
     
     
     const idsForGraph =[1,2,3,5];
@@ -317,7 +317,7 @@ export default function ExecutionView({recordId}){
             <Box sx={{width:1/2, margin: "auto auto" }}>
 
                 <BaseUrlContext.Provider value={baseUrl}>
-                    
+
                     <h1>Execution View</h1>
                     <br/>
                     <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} baseUrl={baseUrl}/>
