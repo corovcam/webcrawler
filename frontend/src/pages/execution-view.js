@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import React, { createContext, useContext } from 'react';
 import Button from '@mui/material/Button';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -13,7 +13,7 @@ import { BaseUrlContext } from '../base-url-context';
 
 export default function ExecutionView({recordId}){
 
-    const [baseUrl, setBaseUrl] = React.useState("http://backend:3001");
+    const [baseUrl, setBaseUrl] = React.useState("http://localhost:3001");
     
 
     const betaLinks = {
@@ -253,15 +253,15 @@ export default function ExecutionView({recordId}){
 
 
     
-    const [requestedRecord, setRequestedRecord] = React.useState(betaNode);
+    const [requestedRecord, setRequestedRecord] = React.useState(null);
 
-    const [requestedNodeLinks, setRequestedNodeLinks] = React.useState(nodelinksArray);
+    const [requestedNodeLinks, setRequestedNodeLinks] = React.useState(null);
 
-    const [requestedExecutions, setRequestedExecutions] = React.useState(executionArray);
+    const [requestedExecutions, setRequestedExecutions] = React.useState(null);
     
     
 
-/*
+
     React.useEffect(() => {
 
 
@@ -271,10 +271,11 @@ export default function ExecutionView({recordId}){
             fetch(`${baseUrl}/website-record/${recordId}`, {method: 'GET'}), //get stored data for requested record
             fetch(`${baseUrl}/executions/website-record/${recordId}`, {method: 'GET'}) //get all executions for a website record
         ])
-        .then(([websiteRecord, executions]) => {
+        .then(([websiteRecord, executions]) => {            
+
             if(websiteRecord.ok){
                 if(!ignore){
-                    setRequestedRecord(websiteRecord);
+                    setRequestedRecord(websiteRecord.json());
                 }                
             }
             else{
@@ -283,7 +284,7 @@ export default function ExecutionView({recordId}){
 
             if(executions.ok){
                 if(!ignore){
-                    setRequestedExecutions(executions);
+                    setRequestedExecutions(executions.json());
                 }                
             }
             else{
@@ -302,7 +303,7 @@ export default function ExecutionView({recordId}){
     }, [recordId]);
     
    
-*/
+
 
   
 
@@ -310,7 +311,7 @@ export default function ExecutionView({recordId}){
     // <GraphVisualisationFromIds graphIds={idsForGraph} />
     
     
-    const idsForGraph =[1,2,3,5];
+    const idsForGraph =[3];
 
     return(
         <>
@@ -320,8 +321,8 @@ export default function ExecutionView({recordId}){
 
                     <h1>Execution View</h1>
                     <br/>
-                    <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} baseUrl={baseUrl}/>
-                    <GraphVisualisation graph={requestedNodeLinks} />
+                    <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} />
+                    <GraphVisualisationFromIds graphIds={idsForGraph} />
                     
                 </BaseUrlContext.Provider>
                 
@@ -334,8 +335,8 @@ export default function ExecutionView({recordId}){
 
 
 
-function CrawledRecordInfo({record, listExecutions = null, baseUrl}){
-
+function CrawledRecordInfo({record, listExecutions = []}){
+    const baseUrl = useContext(BaseUrlContext);
    
     return(
         <>
@@ -389,7 +390,7 @@ function CrawledRecordInfo({record, listExecutions = null, baseUrl}){
                     
                     Executions for this node:
                    
-                    { listExecutions!==null ? <Executions executionsData={listExecutions}/> : <><br/><i> Nothing to show here.</i></>}
+                    { listExecutions!==[] ? <Executions executionsData={listExecutions}/> : <><br/><i> Nothing to show here.</i></>}
                     </>
 
                     :
@@ -408,16 +409,24 @@ function CrawledRecordInfo({record, listExecutions = null, baseUrl}){
 
 
 function Executions({executionsData}){
+    console.log("executions DATA", executionsData);
+    
 
-    const listItems = executionsData.map(ex => <Execution key={ex.execution_id} executionData={ex}/>);
+    try{
+        const listItems = executionsData.map((ex) => <Execution key={ex.execution_id} executionData={ex}/>);
+        return(
+            <>
+                <List sx={{ width: '100%', bgcolor: 'background.paper', maxHeight: 650, overflow: 'auto'}}>
+                    {listItems}
+                </List>
+            </>
+        );
+    }
+    catch{
+        return(<></>);
+    }
 
-    return(
-        <>
-            <List sx={{ width: '100%', bgcolor: 'background.paper', maxHeight: 650, overflow: 'auto'}}>
-                {listItems}
-            </List>
-        </>
-    );
+    
 }
 
 
