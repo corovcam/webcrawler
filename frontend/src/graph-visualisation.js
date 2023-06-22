@@ -4,10 +4,13 @@ import Typography from '@mui/material/Typography';
 import ForceGraph2D from 'react-force-graph-2d';
 import Button from '@mui/material/Button';
 import { getPreparedDataForGraphVisualisation } from "./prepare-graph-data";
+import { useContext } from "react";
+import { BaseUrlContext } from "./base-url-context";
 
 
-export function GraphVisualisationFromIds({graphIds, baseUrl, nodeClickFunction, backgroundClickFunction}){
+export function GraphVisualisationFromIds({graphIds}){
     const [graphData, setGraphData] = React.useState([]);
+    const baseUrl = useContext(BaseUrlContext);
 
     React.useEffect(() => {
         let ignore = false;
@@ -97,19 +100,21 @@ export function GraphVisualisationFromIds({graphIds, baseUrl, nodeClickFunction,
 
     return(
         <>
-            <GraphVisualisation graph={graphData} nodeClickFunction={nodeClickFunction} backgroundClickFunction={backgroundClickFunction}/>
+            <GraphVisualisation graph={graphData}/>
         </>
     )
 }
 
 
 
-export function GraphVisualisation({graph, nodeClickFunction, backgroundClickFunction}){
+export function GraphVisualisation({graph}){
 
     const [websiteView, setWebsiteView] = React.useState(true);
     const [staticGraph, setStaticGraph] = React.useState(true);
     const [width, setWidth] = React.useState(800);
-    
+    const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
+
+    const backgroundClickFunction = () => setClickedgraphNode(null);
     
     const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView, boundaryExpression:""});
     
@@ -133,6 +138,7 @@ export function GraphVisualisation({graph, nodeClickFunction, backgroundClickFun
             return 'maroon';
         }
     };
+
 
 
     const visualiseMyGraph = () => {
@@ -164,7 +170,7 @@ export function GraphVisualisation({graph, nodeClickFunction, backgroundClickFun
                     linkDirectionalArrowColor={() => "grey"}
                     linkDirectionalArrowRelPos={2}
 
-                    onNodeRightClick={nodeClickFunction}
+                    onNodeRightClick={(node) => setClickedgraphNode(node)}
                     onBackgroundClick={backgroundClickFunction}
                     onBackgroundRightClick={backgroundClickFunction}
 
@@ -243,6 +249,8 @@ export function GraphVisualisation({graph, nodeClickFunction, backgroundClickFun
 
                 {visualiseMyGraph()}
 
+                <SelectedNodeFromGraph node={clickedgraphNode}/>
+
             </Box>
         </>
     );
@@ -250,6 +258,70 @@ export function GraphVisualisation({graph, nodeClickFunction, backgroundClickFun
 
 
 
+function SelectedNodeFromGraph({node}){
+    const baseUrl = useContext(BaseUrlContext);
+    return(
+        <>
+            <Box sx={{
+                border: '2px solid grey',
+                borderRadius: '16px',
+                justifyContent: "center",
+                textAlign: "left",
+                padding: 5,
+                width: 1,
+                height: 280,
+                marginTop: 5
+            }}>
+                
+                <div style={{marginBottom:25}}>
+                <span style={{fontSize: 20  }}>Selected node from graph</span>
+                    {node!==null ? 
+                        <>
+                            <span style={{float: "right"}}>
+                                <Button 
+                                    size="large" 
+                                    variant="outlined"
+                                    onClick={()=>{
+                                        console.log(baseUrl);
+                                    }}>
+                                    SHOW EXECUTION VIEW
+                                </Button>
+                            </span>
+                        </>
+                        :
+                        <></>
+                    }
+                    
+                </div>
+                {node!==null ? 
+                    <>
+                        { !node['domain'] ?  
+                            <>
+                            Title: <span style={{float: "right"}}>{node.title}</span>
+                            </>
+                            :
+                            <>
+                            Domain: <span style={{float: "right"}}>{node.domain}</span>
+                            </>
+                        }
+                        
+                        <hr />
+                        URL: <span style={{float: "right"}}>{node.url}</span>
+                        <hr/>
+                        Record ID:  <span style={{float: "right"}}>{node.recordId}</span>
+                        <hr/>
+                        Crawl time: <span style={{float: "right"}}>{node.crawlTime}</span>
+                    </>                    
 
+                    :
+                    <>
+                        <i>Select some node for detail.</i>
+                    </>
+                }
+                
+            </Box>
+        </>
+    );
+}
 
 
