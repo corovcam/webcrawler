@@ -11,6 +11,7 @@ function App() {
     <>
       <CssBaseline enableColorScheme />
       <Box sx={{ textAlign: 'center' }}>
+        {/* TODO: Modify React Router for Execution with parameters */}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="wizard" element={<WizardPage />} />

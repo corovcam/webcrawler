@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box } from "@mui/material";
 import {
   DataGrid,
@@ -26,19 +26,26 @@ function EditToolbar() {
 }
 
 export default function RecordsView() {
-  const [pageSize, setPageSize] = React.useState(20);
-  const [selectionModel, setSelectionModel] = React.useState([]);
-  const [rows, setRows] = React.useState([]);
+  const [pageSize, setPageSize] = useState(20);
+  const [selectionModel, setSelectionModel] = useState([]);
+  const [rows, setRows] = useState([]);
 
   const fetchWebsiteRecords = async () => {
     try {
       const response = await fetch("http://127.0.0.1:3001/website-records");
       if (response.ok) {
         const data = await response.json();
-        const rowsWithDataId = data.websiteRecords.map((record) => ({
-          ...record,
-          id: record.record_id
-        }));
+        const rowsWithDataId = await Promise.all(
+          data.websiteRecords.map(async (record) => {
+            const lastExecution = await fetchLastExecution(record.record_id);
+            return {
+              ...record,
+              id: record.record_id,
+              "last-exec-time": lastExecution?.end_time ?? "",
+              "last-exec-status": lastExecution?.status ?? "",
+            };
+          })
+        );
         setRows(rowsWithDataId);
       } else {
         console.error("Failed to fetch website records:", response.status);
@@ -48,7 +55,25 @@ export default function RecordsView() {
     }
   };
 
-  React.useEffect(() => {
+  const fetchLastExecution = async (recordId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:3001/last-execution/website-record/${recordId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return data.execution;
+      } else if (response.status === 404) {
+        return null;
+      } else {
+        console.error("Failed to fetch last execution:", response.status);
+      }
+    } catch (error) {
+      console.error("Error while fetching last execution:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchWebsiteRecords();
   }, []);
 
@@ -56,12 +81,12 @@ export default function RecordsView() {
     { field: "record_id", headerName: "ID", minWidth: 5 },
     { field: "url", headerName: "URL", minWidth: 150 },
     { field: "boundary_regexp", headerName: "Boundary RegExp", minWidth: 100 },
-    { field: "periodicity", headerName: "Periodicity", width: 100 },
+    { field: "periodicity", headerName: "Periodicity", minWidth: 5 },
     { field: "label", headerName: "Label", minWidth: 50 },
-    { field: "is_active", headerName: "Active?", minWidth: 50 },
+    { field: "is_active", headerName: "Active?" },
     { field: "tags", headerName: "Tags", minWidth: 150 },
-    { field: "last-exec-time", headerName: "Last Execution Time", width: 100 },
-    { field: "last-exec-status", headerName: "Last Execution Status", width: 50 },
+    { field: "last-exec-time", headerName: "Last Execution Time", minWidth: 100 },
+    { field: "last-exec-status", headerName: "Last Execution Status" },
     {
       field: "actions",
       headerName: "Actions",
@@ -102,55 +127,57 @@ export default function RecordsView() {
           </Button>
         </>
       ),
-    }
+    },
   ];
 
-const handleShow = (recordId) => {
-  fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
-    .then(response => response.json())
-    .then(data => {
-      console.log('Website Record:', data.websiteRecord);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-};
+  const handleShow = (recordId) => {
+    // Presmerovať na stránku s detailom posledného execution pre daný record <ExecutionView recordId={recordId} />
+    // Pomocou React Router <Redirect to="/execution-view/:id" />, alebo <Link to="/execution-view/:id" />
+    fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Website Record:", data.websiteRecord);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
-const handleEdit = (recordId) => {
-  fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
-    .then(response => response.json())
-    .then(data => {
-      console.log('Edit Website Record:', data.websiteRecord);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-};
+  const handleEdit = (recordId) => {
+    fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Edit Website Record:", data.websiteRecord);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
-const handleDelete = (recordId) => {
-  fetch(`http://127.0.0.1:3001/delete-website-record/${recordId}`, {
-    method: 'DELETE'
-  })
-    .then(response => response.text())
-    .then(data => {
-      console.log('Delete Website Record:', data);
-      fetchWebsiteRecords();
+  const handleDelete = (recordId) => {
+    fetch(`http://127.0.0.1:3001/delete-website-record/${recordId}`, {
+      method: "DELETE",
     })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-};
+      .then((response) => response.text())
+      .then((data) => {
+        console.log("Delete Website Record:", data);
+        fetchWebsiteRecords();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
-const handleCrawl = (recordId) => {
-  fetch(`http://127.0.0.1:3001/crawl-website-record/${recordId}`)
-    .then(response => response.text())
-    .then(data => {
-      console.log('Crawl Website Record:', data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-};
+  const handleCrawl = (recordId) => {
+    fetch(`http://127.0.0.1:3001/crawl-website-record/${recordId}`)
+      .then((response) => response.text())
+      .then((data) => {
+        console.log("Crawl Website Record:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
   return (
     <>
@@ -172,12 +199,12 @@ const handleCrawl = (recordId) => {
             onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
             rowsPerPageOptions={[20, 50, 100]}
             checkboxSelection
-            onSelectionModelChange={(newSelectionModel) => {
+            onRowSelectionModelChange={(newSelectionModel) => {
               setSelectionModel(newSelectionModel);
             }}
-            selectionModel={selectionModel}
-            components={{
-              Toolbar: EditToolbar,
+            rowSelectionModel={selectionModel}
+            slots={{
+              toolbar: EditToolbar,
             }}
           />
         </Box>
@@ -185,6 +212,8 @@ const handleCrawl = (recordId) => {
       {selectionModel.length > 0 && (
         <Button
           startIcon={<VisibilityIcon />}
+          // Zobraziť graf pre vybrané recordIds v selectionModel
+          // Graf sa zobrazí ako modal dialog (https://mui.com/components/dialogs/#modal) alebo ako nová stránka
           onClick={() => alert(JSON.stringify(selectionModel))}
         >
           Visualise Selection
