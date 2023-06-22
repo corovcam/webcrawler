@@ -8,9 +8,75 @@ import { useContext } from "react";
 import { BaseUrlContext } from "./base-url-context";
 
 
+
 export function GraphVisualisationFromIds({graphIds}){
-    const [graphData, setGraphData] = React.useState([]);
+    const [graphData, setGraphData] = React.useState([]);    
+    const [staticGraph, setStaticGraph] = React.useState(true);
+    const [lastExecutionForIds, setLastExecutionForIds] = React.useState([]);
     const baseUrl = useContext(BaseUrlContext);
+
+    
+
+    const checkLastExecution = (ignore) => {
+        if(!staticGraph){
+            // LIVE mode is activated
+
+            let arrayOfLastExecutions = [];
+
+            const fetchLastExecutionsForIds = async () => {
+                const LastExecutionsForIds = await Promise.all(
+                    graphIds.map(async (id) => {
+                        try{
+                            const execution = await fetch(`${baseUrl}/last-execution/website-record/${id}`, {method: 'GET'});
+                            const executionResponse = await execution.json();
+
+                            arrayOfLastExecutions.push({
+                                'record_id': executionResponse.record_id,
+                                'execution_id': executionResponse.execution_id,
+                                'end_time': executionResponse.end_time
+                            });
+                        }
+                        catch(err){
+                            console.log(err.message);
+                        }
+                    })
+                );
+            };
+
+            fetchLastExecutionsForIds();
+
+            if(!ignore){
+                arrayOfLastExecutions.map((lastExecution) => {
+                    const foundStoredExecution = lastExecutionForIds.find((storedExecution) => lastExecution.record_id === storedExecution.record_id);
+    
+                    if(!foundStoredExecution){
+                        setLastExecutionForIds(arrayOfLastExecutions);
+                        return;
+                    }
+                    else if(foundStoredExecution.execution_id !== lastExecution.execution_id 
+                        && foundStoredExecution.end_time <= lastExecution.end_time){
+                            setLastExecutionForIds(arrayOfLastExecutions);
+                            return;
+                    }
+                })
+            }
+            
+        }
+    };
+
+
+    React.useEffect(() => {
+        let ignore = false;
+        const interval = setInterval(() => {
+            checkLastExecution(ignore);
+        }, 5000);
+
+        return () => {
+            ignore = true;
+            clearInterval(interval)};
+    }, []);
+
+
 
     React.useEffect(() => {
         let ignore = false;
@@ -96,17 +162,16 @@ export function GraphVisualisationFromIds({graphIds}){
 
     return(
         <>
-            <GraphVisualisation graph={graphData}/>
+            <GraphVisualisation graph={graphData} staticGraphConst={staticGraph} changeStaticGraph={() => setStaticGraph(!staticGraph)}/>
         </>
     )
 }
 
 
 
-export function GraphVisualisation({graph}){
+export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph}){
 
     const [websiteView, setWebsiteView] = React.useState(true);
-    const [staticGraph, setStaticGraph] = React.useState(true);
     const [width, setWidth] = React.useState(800);
     const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
 
@@ -239,10 +304,10 @@ export function GraphVisualisation({graph}){
                     }} 
                         variant="contained"
                         onClick={() => {
-                            setStaticGraph(!staticGraph)
+                            changeStaticGraph()
                         }}    
                     >
-                        GRAPH: {staticGraph ? 'STATIC' : 'LIVE'}
+                        GRAPH: {staticGraphConst ? 'STATIC' : 'LIVE'}
                     </Button>
                 </Box>
 
