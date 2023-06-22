@@ -1,6 +1,6 @@
 import React from "react";
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+//import Typography from '@mui/material/Typography';
 import ForceGraph2D from 'react-force-graph-2d';
 import Button from '@mui/material/Button';
 import { getPreparedDataForGraphVisualisation } from "./prepare-graph-data";
@@ -70,8 +70,6 @@ export function GraphVisualisationFromIds({graphIds}){
                                 }]);
                             })
     
-    
-    
                         }
                     }
                     catch(err){
@@ -79,12 +77,10 @@ export function GraphVisualisationFromIds({graphIds}){
                         return (<></>);
                     }
                     
-                
-                                  
+                          
                 })
             );
 
-            
         };
       
         fetchAndPreprocessData();
@@ -131,7 +127,10 @@ export function GraphVisualisation({graph}){
     });
     
     const getNodeColor = (node) => {
-        if (!node['domain']) {
+        if(clickedgraphNode !== null && node.recordId === clickedgraphNode.recordId){
+            return 'yellow';
+        }
+        else if (!node['domain']) {
             // no domain --> website view option
             return node.passedBoundary ? 'navy' : 'olive'; // correct to Boundary expr
         } else {
@@ -249,7 +248,7 @@ export function GraphVisualisation({graph}){
 
                 {visualiseMyGraph()}
 
-                <SelectedNodeFromGraph node={clickedgraphNode}/>
+                <ShowSelectedNodeFromGraph node={clickedgraphNode}/>
 
             </Box>
         </>
@@ -258,7 +257,7 @@ export function GraphVisualisation({graph}){
 
 
 
-function SelectedNodeFromGraph({node}){
+function ShowSelectedNodeFromGraph({node}){
     const baseUrl = useContext(BaseUrlContext);
     return(
         <>
