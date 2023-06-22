@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext } from 'react';
 import Button from '@mui/material/Button';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -7,12 +7,13 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import ForceGraph2D from 'react-force-graph-2d';
 import {GraphVisualisation, GraphVisualisationFromIds} from '../graph-visualisation';
+import { BaseUrlContext } from '../base-url-context';
 
 
 
 export default function ExecutionView({recordId}){
 
-    const baseUrl = "http://backend:3001";
+    const [baseUrl, setBaseUrl] = React.useState("http://backend:3001");
     
 
     const betaLinks = {
@@ -258,7 +259,7 @@ export default function ExecutionView({recordId}){
 
     const [requestedExecutions, setRequestedExecutions] = React.useState(executionArray);
     
-    const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
+    
 
 /*
     React.useEffect(() => {
@@ -268,10 +269,9 @@ export default function ExecutionView({recordId}){
 
         Promise.all([
             fetch(`${baseUrl}/website-record/${recordId}`, {method: 'GET'}), //get stored data for requested record
-            fetch(`${baseUrl}/get-crawled-data/${recordId}`, {method: 'GET'}), //get crawled data for requested record
             fetch(`${baseUrl}/executions/website-record/${recordId}`, {method: 'GET'}) //get all executions for a website record
         ])
-        .then(([websiteRecord, crawledWebsitesNodeLinks, executions]) => {
+        .then(([websiteRecord, executions]) => {
             if(websiteRecord.ok){
                 if(!ignore){
                     setRequestedRecord(websiteRecord);
@@ -290,16 +290,7 @@ export default function ExecutionView({recordId}){
                 console.log(executions.status);
             }
 
-            if(crawledWebsitesNodeLinks.ok){
-                if(!ignore){
-                    //const crawledNodes = crawledWebsitesNodeLinks.flatMap((nodeLink) => [nodeLink.node, ...nodeLink.links]);
-                    //setRequestedNodeLinks(crawledNodes);
-                    setRequestedNodeLinks(crawledWebsitesNodeLinks);
-                }                
-            }
-            else{
-                console.log(crawledWebsitesNodeLinks.status);
-            }
+            
         })
         .catch((err) => {
             console.log(err.message);
@@ -313,89 +304,34 @@ export default function ExecutionView({recordId}){
    
 */
 
-    //<GraphVisualisation graph={requestedNodeLinks} nodeClickFunction={(node) => setClickedgraphNode(node)} backGroundClickFunction={() => setClickedgraphNode(null)}/>
+  
+
+    // <GraphVisualisation graph={requestedNodeLinks} nodeClickFunction={(node) => setClickedgraphNode(node)} backGroundClickFunction={() => setClickedgraphNode(null)}/>
+    // <GraphVisualisationFromIds graphIds={idsForGraph} baseUrl={baseUrl} backgroundClickFunction={() => setClickedgraphNode(null)} nodeClickFunction={(node) => setClickedgraphNode(node)}/>
+    
+    
     const idsForGraph =[1,2,3,5];
 
     return(
         <>
             <Box sx={{width:1/2, margin: "auto auto" }}>
+
+                <BaseUrlContext.Provider value={baseUrl}>
                     
-                <h1>Execution View</h1>
-                <br/>
-                <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} baseUrl={baseUrl}/>
-                <GraphVisualisationFromIds graphIds={idsForGraph} baseUrl={baseUrl} backgroundClickFunction={() => setClickedgraphNode(null)} nodeClickFunction={(node) => setClickedgraphNode(node)}/>
-                <SelectedNodeFromGraph node={clickedgraphNode} baseUrl={baseUrl}/>
-            </Box>
-        </>
-    );
-}
-
-
-function SelectedNodeFromGraph({node, baseUrl}){
-
-    return(
-        <>
-            <Box sx={{
-                border: '2px solid grey',
-                borderRadius: '16px',
-                justifyContent: "center",
-                textAlign: "left",
-                padding: 5,
-                width: 1,
-                height: 280,
-                marginBottom: 5
-            }}>
-                
-                <div style={{marginBottom:25}}>
-                <span style={{fontSize: 20  }}>Selected node from graph</span>
-                    {node!==null ? 
-                        <>
-                            <span style={{float: "right"}}>
-                                <Button 
-                                    size="large" 
-                                    variant="outlined"
-                                    onClick={()=>{
-                                        
-                                    }}>
-                                    SHOW EXECUTION VIEW
-                                </Button>
-                            </span>
-                        </>
-                        :
-                        <></>
-                    }
+                    <h1>Execution View</h1>
+                    <br/>
+                    <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} baseUrl={baseUrl}/>
+                    <GraphVisualisation graph={requestedNodeLinks} />
                     
-                </div>
-                {node!==null ? 
-                    <>
-                        { !node['domain'] ?  
-                            <>
-                            Title: <span style={{float: "right"}}>{node.title}</span>
-                            </>
-                            :
-                            <>
-                            Domain: <span style={{float: "right"}}>{node.domain}</span>
-                            </>
-                        }
-                        
-                        <hr />
-                        URL: <span style={{float: "right"}}>{node.url}</span>
-                        <hr/>
-                        Record ID:  <span style={{float: "right"}}>{node.recordId}</span>
-                        <hr/>
-                        Crawl time: <span style={{float: "right"}}>{node.crawlTime}</span>
-                    </>                    
-
-                    :
-                    <>
-                        <i>Select some node for detail.</i>
-                    </>
-                }
+                </BaseUrlContext.Provider>
                 
             </Box>
         </>
     );
 }
+
+
+
 
 
 function CrawledRecordInfo({record, listExecutions = null, baseUrl}){
