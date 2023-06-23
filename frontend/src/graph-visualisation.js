@@ -1,6 +1,5 @@
 import React from "react";
 import Box from '@mui/material/Box';
-//import Typography from '@mui/material/Typography';
 import ForceGraph2D from 'react-force-graph-2d';
 import Button from '@mui/material/Button';
 import { getPreparedDataForGraphVisualisation } from "./prepare-graph-data";
@@ -15,7 +14,7 @@ export function GraphVisualisationFromIds({graphIds}){
     const [lastExecutionForIds, setLastExecutionForIds] = React.useState([]);
     const baseUrl = useContext(BaseUrlContext);
 
-    
+   
 
     const checkLastExecution = (ignore) => {
         if(!staticGraph){
@@ -80,76 +79,79 @@ export function GraphVisualisationFromIds({graphIds}){
 
     React.useEffect(() => {
         let ignore = false;
+        let newGrahpData = [];
 
+        graphIds.map(async (id) => {
 
-        const fetchAndPreprocessData = async () => {
-            const preprocessedDataArray = await Promise.all(
+            try{
+                const websiteRecordResponse = await fetch(`${baseUrl}/website-record/${id}`, {method: 'GET'}); //get stored data for requested record
+                const websiteRecord = await websiteRecordResponse.json();
+            
+                const crawledWebsitesNodeLinksResponse = await fetch(`${baseUrl}/get-crawled-data/${id}`, {method: 'GET'}); //get crawled data for requested record
+                const crawledWebsitesNodeLinks = await crawledWebsitesNodeLinksResponse.json();
 
-                graphIds.map(async (id) => {
+                if(websiteRecordResponse.ok && crawledWebsitesNodeLinksResponse.ok){
+                    if(!ignore){
+                        const boundaryRegEx =  new RegExp(websiteRecord.websiteRecord.boundary_regexp);
+                        
+                        crawledWebsitesNodeLinks.map((nodeLink) => {
 
-                    try{
-                        const websiteRecordResponse = await fetch(`${baseUrl}/website-record/${id}`, {method: 'GET'}); //get stored data for requested record
-                        const websiteRecord = await websiteRecordResponse.json();
-                    
-                        const crawledWebsitesNodeLinksResponse = await fetch(`${baseUrl}/get-crawled-data/${id}`, {method: 'GET'}); //get crawled data for requested record
-                        const crawledWebsitesNodeLinks = await crawledWebsitesNodeLinksResponse.json();
+                            let newNode = {};
+                            let newLinks = [];
 
-                        if(websiteRecord.ok && crawledWebsitesNodeLinks.ok && !ignore){
+                            if(boundaryRegEx.test(nodeLink.node.url)){
+                                newNode={
+                                    ...nodeLink.node,
+                                    'passedBoundary': 'true'                
+                                };
+
+                                nodeLink.links.map((link) => {
+                                    if(boundaryRegEx.test(link.url)){
+                                        newLinks.push({
+                                            ...link,
+                                            'passedBoundary': 'true' 
+                                        });
+                                    }
+                                    else{
+                                        newLinks.push({
+                                            ...link,
+                                            'passedBoundary': 'false' 
+                                        });
+                                    }
+                                })
+                            }
+                            else{
+                                newNode={
+                                    ...nodeLink.node,
+                                    'passedBoundary': 'false'                
+                                };
+                            }
+
                             
-                            const boundaryRegEx =  new RegExp(websiteRecord.boundary_regexp);
 
-                            crawledWebsitesNodeLinks.map((nodeLink) => {
-                                let newNode = {};
-                                let newLinks = [];
-
-                                if(boundaryRegEx.test(nodeLink.node.url)){
-                                    newNode={
-                                        ...nodeLink.node,
-                                        'passedBoundary': 'true'                
-                                    };
-    
-                                    nodeLink.links.map((link) => {
-                                        if(boundaryRegEx.test(link.url)){
-                                            newLinks.push({
-                                                ...link,
-                                                'passedBoundary': 'true' 
-                                            });
-                                        }
-                                        else{
-                                            newLinks.push({
-                                                ...link,
-                                                'passedBoundary': 'false' 
-                                            });
-                                        }
-                                    })
-                                }
-                                else{
-                                    newNode={
-                                        ...nodeLink.node,
-                                        'passedBoundary': 'true'                
-                                    };
-                                }
-
-                                setGraphData([...graphData, {
-                                    'node': newNode,
-                                    'links': newLinks
-                                }]);
-                            })
-    
-                        }
-                    }
-                    catch(err){
-                        console.log(err.message);
-                        return (<></>);
+                            newGrahpData.push({
+                                'node': newNode,
+                                'links': newLinks
+                            });
+                            
+                            
+                        })
                     }
                     
-                          
-                })
-            );
-
-        };
-      
-        fetchAndPreprocessData();
+                }
+                else{
+                    console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse .status, crawledWebsitesNodeLinksResponse .status);
+                }
+            }
+            catch(err){
+                console.log(err.message);
+                return (<></>);
+            }
+            
+                    
+        })
+            
+        setGraphData(newGrahpData);
 
         return () => {
             ignore = true;
@@ -170,20 +172,26 @@ export function GraphVisualisationFromIds({graphIds}){
 
 
 export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph}){
-
+    
     const [websiteView, setWebsiteView] = React.useState(true);
     const [width, setWidth] = React.useState(800);
     const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
-
+    const [readyGraphForVisualisation, setReadyGraphForVisualisation] = React.useState(null);
     const backgroundClickFunction = () => setClickedgraphNode(null);
     
-    const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView, boundaryExpression:""});
     
+    
+    //console.log('graph', graph);
+    //console.log('PREPARED', readyGraphForVisualisation);
 
     const idGraphNodes = websiteView ? 'url' : 'domain';
     const labelGraphNodes = websiteView ? 'title' : 'domain';
 
-
+    /*React.useEffect(() => {
+        
+        setReadyGraphForVisualisation(preparedgraphdata);
+    },[graph, websiteView]);
+    */
     React.useEffect(() => {
         let container = document.getElementById('containerForGraph');
         if(container){
@@ -192,13 +200,14 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     });
     
     const getNodeColor = (node) => {
-        if(clickedgraphNode !== null && node.recordId === clickedgraphNode.recordId){
+        if(clickedgraphNode !== null && node.url === clickedgraphNode.url){
             return 'yellow';
         }
         else if (!node['domain']) {
             // no domain --> website view option
             return node.passedBoundary ? 'navy' : 'olive'; // correct to Boundary expr
-        } else {
+        } 
+        else {
             return 'maroon';
         }
     };
@@ -206,7 +215,8 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
     const visualiseMyGraph = () => {
-
+        const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
+        
         if(preparedgraphdata){                
         
             return(

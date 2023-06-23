@@ -40,41 +40,36 @@ NodeLinks:
 */
 
 
-export const getPreparedDataForGraphVisualisation = ({graphData, isRequestedWebsiteView, boundaryExpression}) => {
+export const getPreparedDataForGraphVisualisation = ({graphData, isRequestedWebsiteView}) => {
     
     let preparedGraph = null;
     
     if(isRequestedWebsiteView){
-        preparedGraph = getPreparedGraphWebsiteView({graphData, boundaryExpression});        
+        
+        preparedGraph = getPreparedGraphWebsiteView({graphData});        
     }
     else{
-        preparedGraph = getPreparedGraphDomainView({graphData, boundaryExpression});
+        preparedGraph = getPreparedGraphDomainView({graphData});
     }
 
     return preparedGraph;
 };
 
 
-const getPreparedGraphWebsiteView = ({graphData, boundaryExpression}) => {
-    const boundaryRegex = new RegExp(boundaryExpression);
-
+const getPreparedGraphWebsiteView = ({graphData}) => {
+    
     let newNodes = [];
     let newLinks = [];
     
-    graphData.map(data => {
-        if(newNodes.every(node => node.url !== data.node.url)){
-            newNodes.push({
-                ...data.node,
-                'passedBoundary': boundaryRegex.test(data.node.url)
-            });
+    graphData.map((data) => {
+        
+        if(newNodes.every((node) => node.url !== data.node.url)){
+            newNodes.push(data.node);
         }
 
-        data.links.map(link => {
-            if(newNodes.every(node => node.url !== link.url)){
-                newNodes.push({
-                    ...link,
-                    'passedBoundary': boundaryRegex.test(data.node.url)
-                });
+        data.links.map((link) => {
+            if(newNodes.every((node) => node.url !== link.url)){
+                newNodes.push(link);
             }
 
             newLinks.push({
@@ -84,16 +79,16 @@ const getPreparedGraphWebsiteView = ({graphData, boundaryExpression}) => {
         });
     });
     
-    let myGraph = {
+    const myGraph = {
         'nodes': newNodes,
         'links': newLinks
     };
-
+    
     return myGraph;
 };
 
 
-const getPreparedGraphDomainView = ({graphData, boundaryExpression}) => {
+const getPreparedGraphDomainView = ({graphData}) => {
 
     const getDomain = ({url}) => {
         try{
@@ -106,7 +101,7 @@ const getPreparedGraphDomainView = ({graphData, boundaryExpression}) => {
         
     }
 
-    const boundaryRegex = new RegExp(boundaryExpression);
+    
 
     let newNodes = [];
     let newLinks = [];
@@ -118,7 +113,6 @@ const getPreparedGraphDomainView = ({graphData, boundaryExpression}) => {
         if(newNodes.every(node => node.domain !== nodeDomain)){
             newNodes.push({
                 ...data.node,
-                'passedBoundary': boundaryRegex.test(data.node.url),
                 'domain': nodeDomain
             });
         }
@@ -128,7 +122,6 @@ const getPreparedGraphDomainView = ({graphData, boundaryExpression}) => {
             if(newNodes.every(node => node.domain !== linkNodeDomain)){
                 newNodes.push({
                     ...link,
-                    'passedBoundary': boundaryRegex.test(data.node.url),
                     'domain': linkNodeDomain
                 });
             }
@@ -140,7 +133,7 @@ const getPreparedGraphDomainView = ({graphData, boundaryExpression}) => {
         });
     });
     
-    let myGraph = {
+    const myGraph = {
         'nodes': newNodes,
         'links': newLinks
     };
