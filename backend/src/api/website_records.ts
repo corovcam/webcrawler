@@ -73,7 +73,7 @@ class WebsiteRecordsAPI {
         req.body
       );
       const query = `INSERT INTO website_records(url, boundary_regexp, periodicity, label, is_active, is_being_crawled, tags, crawled_data, request_do_crawl) 
-            VALUES (?,?,?,?,?,?,JSON_ARRAY(?),?,?);`;
+            VALUES (?,?,?,?,?,?,?,?,?);`;
       const params = [
         record.url,
         record.boundaryRegExp,
@@ -81,7 +81,7 @@ class WebsiteRecordsAPI {
         record.label,
         record.isActive,
         record.isBeingCrawled,
-        record.tags,
+        JSON.stringify(record.tags),
         record.crawledData,
         record.requestDoCrawl,
       ];
@@ -107,7 +107,7 @@ class WebsiteRecordsAPI {
         req.body
       );
       const query = `UPDATE website_records 
-            SET url = ?, boundary_regexp = ?, periodicity = ?, label = ?, is_active = ?, is_being_crawled = ?, tags = JSON_ARRAY(?), crawled_data = ?, request_do_crawl = ? 
+            SET url = ?, boundary_regexp = ?, periodicity = ?, label = ?, is_active = ?, is_being_crawled = ?, tags = ?, crawled_data = ?, request_do_crawl = ? 
             WHERE record_id = ?;`;
       const params = [
         record.url,
@@ -116,7 +116,7 @@ class WebsiteRecordsAPI {
         record.label,
         record.isActive,
         record.isBeingCrawled,
-        record.tags,
+        JSON.stringify(record.tags),
         typeof record.crawledData === "string" ? record.crawledData : JSON.stringify(record.crawledData),
         record.requestDoCrawl,
         record.id,
