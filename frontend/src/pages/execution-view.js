@@ -14,254 +14,12 @@ import { BaseUrlContext } from '../base-url-context';
 export default function ExecutionView({recordId}){
 
     const [baseUrl, setBaseUrl] = React.useState("http://localhost:3001");
-    
-
-    const betaLinks = {
-        nodes: [
-        {
-            recordId: 1,
-            crawlTime: 123456,
-            title: 'Node 1',
-            url: 'https://example.com/node1'
-        },
-        {
-            recordId: 2,
-            crawlTime: 123457,
-            title: 'Node 2',
-            url: 'https://example.com/node2'
-        },
-        {
-            recordId: 3,
-            crawlTime: 123458,
-            title: 'Node 3',
-            url: 'https://example.com/node3'
-        },
-        {
-            recordId: 4,
-            crawlTime: 123459,
-            title: 'Node 4',
-            url: 'https://example.com/node4'
-        },
-        {
-            recordId: 5,
-            crawlTime: 123460,
-            title: 'Node 5',
-            url: 'https://example.com/node5'
-        },
-        {
-            recordId: 6,
-            crawlTime: 123461,
-            title: 'Node 6',
-            url: 'https://example.com/node6'
-        }
-        ],
-        links: [
-        {
-            source: 'https://example.com/node1',
-            target: 'https://example.com/node2'
-        },
-        {
-            source: 'https://example.com/node1',
-            target: 'https://example.com/node3'
-        },
-        {
-            source: 'https://example.com/node1',
-            target: 'https://example.com/node4'
-        },
-        {
-            source: 'https://example.com/node4',
-            target: 'https://example.com/node5'
-        },
-        {
-            source: 'https://example.com/node4',
-            target: 'https://example.com/node6'
-        },
-        ]
-    };
-    
-    const betaNode = {
-        record_id: 0,
-        periodicity: 123455,
-        label: 'Node 0',
-        url: 'https://example.com/node0',
-        is_active: 'true'
-    };
-    
-    const executionArray = [
-        {
-            execution_id: 1,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 32,
-            record_id: 0,
-        },
-        {
-            execution_id: 2,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 7,
-            record_id: 0,
-        },
-        {
-            execution_id: 3,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 15,
-            record_id: 0,
-        },
-        {
-            execution_id: 4,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 10,
-            record_id: 0,
-        },
-        {
-            execution_id: 5,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 4,
-            record_id: 0,
-        },
-        {
-            execution_id: 6,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 32,
-            record_id: 0,
-        },
-        {
-            execution_id: 7,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 71,
-            record_id: 0,
-        },
-        {
-            execution_id: 8,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 16,
-            record_id: 0,
-        },
-        {
-            execution_id: 9,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 12,
-            record_id: 0,
-        },
-        {
-            execution_id: 10,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 1,
-            record_id: 0,
-        },
-        {
-            execution_id: 11,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 32,
-            record_id: 0,
-          },
-          {
-            execution_id: 12,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 7,
-            record_id: 0,
-          },
-          {
-            execution_id: 13,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 15,
-            record_id: 0,
-          },
-          {
-            execution_id: 14,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 10,
-            record_id: 0,
-          },
-          {
-            execution_id: 15,
-            status: 200,
-            start_time: '2023-06-15T10:00:00Z',
-            end_time: '2023-06-15T11:00:00Z',
-            sites_crawled_count: 2,
-            record_id: 0,
-          },
-    ];
-
-    const nodelinksArray = [
-        {
-          "node": {
-            "recordId": 1,
-            "crawlTime": 1625678300,
-            "title": "Node 1",
-            "url": "https://example.com/node1"
-          },
-          "links": [
-            {
-              "recordId": 2,
-              "crawlTime": 1625678400,
-              "title": "Node 2",
-              "url": "https://examplee.com/node2"
-            },
-            {
-              "recordId": 3,
-              "crawlTime": 1625678500,
-              "title": "Node 3",
-              "url": "https://example.com/node3"
-            }
-          ]
-        },
-        {
-          "node": {
-            "recordId": 4,
-            "crawlTime": 1625678600,
-            "title": "Node 4",
-            "url": "https://example.com/node4"
-          },
-          "links": [
-            {
-              "recordId": 5,
-              "crawlTime": 1625678700,
-              "title": "Node 5",
-              "url": "https://example.com/node5"
-            }
-          ]
-        }
-      ];
-
-
-    
+   
     const [requestedRecord, setRequestedRecord] = React.useState(null);
-
-    const [requestedNodeLinks, setRequestedNodeLinks] = React.useState(null);
 
     const [requestedExecutions, setRequestedExecutions] = React.useState(null);
     
     
-
-
     React.useEffect(() => {
 
 
@@ -275,26 +33,25 @@ export default function ExecutionView({recordId}){
 
             if(websiteRecord.ok){
                 if(!ignore){
-                    setRequestedRecord(websiteRecord.json());
-                }                
+                    websiteRecord.json().then(websiteRecordData => {setRequestedRecord(websiteRecordData.websiteRecord)}); 
+                }                              
             }
             else{
-                console.log(websiteRecord.status);
+                console.error(websiteRecord.status);
             }
 
             if(executions.ok){
                 if(!ignore){
-                    setRequestedExecutions(executions.json());
-                }                
+                    executions.json().then(executionsData => {setRequestedExecutions(executionsData.executions)});
+                }
+                          
             }
             else{
-                console.log(executions.status);
+                console.error(executions.status);
             }
-
-            
         })
         .catch((err) => {
-            console.log(err.message);
+            console.error(err.message);
         });
 
         return () => {
@@ -302,27 +59,20 @@ export default function ExecutionView({recordId}){
         }
     }, [recordId]);
     
-   
-
-
-  
-
-    // <GraphVisualisation graph={requestedNodeLinks} />
-    // <GraphVisualisationFromIds graphIds={idsForGraph} />
     
     
-    const idsForGraph =[3];
+    const idForGraph =[recordId];
 
     return(
         <>
-            <Box sx={{width:1/2, margin: "auto auto" }}>
+            <Box sx={{width:5/8, margin: "auto auto" }}>
 
                 <BaseUrlContext.Provider value={baseUrl}>
 
                     <h1>Execution View</h1>
                     <br/>
                     <CrawledRecordInfo record={requestedRecord} listExecutions={requestedExecutions} />
-                    <GraphVisualisationFromIds graphIds={idsForGraph} />
+                    <GraphVisualisationFromIds graphIds={idForGraph} />
                     
                 </BaseUrlContext.Provider>
                 
@@ -337,7 +87,7 @@ export default function ExecutionView({recordId}){
 
 function CrawledRecordInfo({record, listExecutions = []}){
     const baseUrl = useContext(BaseUrlContext);
-   
+    
     return(
         <>
             <Box sx={{
@@ -363,12 +113,12 @@ function CrawledRecordInfo({record, listExecutions = []}){
                                         const response = await fetch(`${baseUrl}/crawl-website-record/${record.record_id}`, {method: 'GET'});
 
                                         if (!response.ok) {
-                                            alert(`Error! status: ${response.status}`);
+                                            console.error(`Error! Status: ${response.status}, while trying to crawl website record.`);
                                         }
                                     }
-                                    catch (err){
-                                        console.log(err);
-                                        alert("ERROR crawl record!");
+                                    catch{
+                                        console.error("ERROR crawl record!");
+                                        
                                     }
                                     
                                 }}>
@@ -409,9 +159,7 @@ function CrawledRecordInfo({record, listExecutions = []}){
 
 
 function Executions({executionsData}){
-    console.log("executions DATA", executionsData);
     
-
     try{
         const listItems = executionsData.map((ex) => <Execution key={ex.execution_id} executionData={ex}/>);
         return(
@@ -422,7 +170,7 @@ function Executions({executionsData}){
             </>
         );
     }
-    catch{
+    catch(err){
         return(<></>);
     }
 
@@ -433,7 +181,6 @@ function Executions({executionsData}){
 
 function Execution({executionData}){
 
-    
 
     return(
         <>
@@ -444,7 +191,7 @@ function Execution({executionData}){
                     secondary={
                         <React.Fragment>
                             <Typography
-                                sx={{ display: 'inline' }}
+                                sx={{ display: 'inline', marginLeft:3 }}
                                 component="span"
                                 variant="body2"
                                 color="text.primary"
@@ -453,7 +200,7 @@ function Execution({executionData}){
                             </Typography>
                             {` ${executionData.start_time} `}
                             <Typography
-                                sx={{ display: 'inline' }}
+                                sx={{ display: 'inline', marginLeft:2 }}
                                 component="span"
                                 variant="body2"
                                 color="text.primary"
@@ -462,7 +209,7 @@ function Execution({executionData}){
                             </Typography>
                             {` ${executionData.end_time} `}
                             <Typography
-                                sx={{ display: 'inline' }}
+                                sx={{ display: 'inline', marginLeft:2 }}
                                 component="span"
                                 variant="body2"
                                 color="text.primary"
