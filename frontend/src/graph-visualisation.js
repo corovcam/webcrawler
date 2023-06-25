@@ -161,7 +161,6 @@ export function GraphVisualisationFromIds({graphIds}){
     
     
 
-
     return(
         <>
             <GraphVisualisation graph={graphData} staticGraphConst={staticGraph} changeStaticGraph={() => setStaticGraph(!staticGraph)}/>
@@ -176,9 +175,8 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     const [websiteView, setWebsiteView] = React.useState(true);
     const [width, setWidth] = React.useState(800);
     const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
-    const [readyGraphForVisualisation, setReadyGraphForVisualisation] = React.useState(null);
+    //const [readyGraphForVisualisation, setReadyGraphForVisualisation] = React.useState(null);
     const backgroundClickFunction = () => setClickedgraphNode(null);
-    
     
     
     //console.log('graph', graph);
@@ -187,11 +185,22 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     const idGraphNodes = websiteView ? 'url' : 'domain';
     const labelGraphNodes = websiteView ? 'title' : 'domain';
 
-    /*React.useEffect(() => {
-        
+
+
+    
+    //const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
+    //console.log('PREPARED function', preparedgraphdata);
+
+    
+/*
+    React.useEffect(() => {
+        console.log('change here');
         setReadyGraphForVisualisation(preparedgraphdata);
+        
     },[graph, websiteView]);
-    */
+*/
+
+
     React.useEffect(() => {
         let container = document.getElementById('containerForGraph');
         if(container){
@@ -215,10 +224,12 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
     const visualiseMyGraph = () => {
+
+
         const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
-        
-        if(preparedgraphdata){                
-        
+
+        if(graph.length>0 && preparedgraphdata){                
+            
             return(
                 <ForceGraph2D 
                             
@@ -332,6 +343,9 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
 
+
+
+
 function ShowSelectedNodeFromGraph({node}){
     const baseUrl = useContext(BaseUrlContext);
     return(
@@ -355,9 +369,8 @@ function ShowSelectedNodeFromGraph({node}){
                                 <Button 
                                     size="large" 
                                     variant="outlined"
-                                    onClick={()=>{
-                                        console.log(baseUrl);
-                                    }}>
+                                    href={`/executionview/${node.recordId}`}
+                                >
                                     SHOW EXECUTION VIEW
                                 </Button>
                             </span>
