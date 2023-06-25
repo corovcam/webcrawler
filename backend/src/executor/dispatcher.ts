@@ -3,7 +3,7 @@ import workerpool, { WorkerPool } from "workerpool";
 import axios from "axios";
 import neo_driver from "../database/neo4j_config";
 import neo4j from "neo4j-driver";
-import {
+import { 
   addExecution,
   getLastExecutionForWebsiteRecord,
   getWebsiteRecords,

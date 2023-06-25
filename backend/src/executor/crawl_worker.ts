@@ -67,6 +67,8 @@ export default class CrawlWorker {
           }
         }
       });
+    } else {
+      node.links = [];
     }
 
     node.setCrawlTime();

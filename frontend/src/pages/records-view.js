@@ -8,6 +8,7 @@ import {
   GridToolbarExport,
   GridToolbarDensitySelector,
 } from "@mui/x-data-grid";
+import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
@@ -42,7 +43,8 @@ export default function RecordsView() {
               ...record,
               id: record.record_id,
               "last-exec-time": lastExecution?.end_time ?? "",
-              "last-exec-status": lastExecution?.status ?? "",
+              "last-exec-status": lastExecution?.status === 0 ? "completed" : "crawling",
+              "is_active": record.is_active === 0 ? false : true,
             };
           })
         );
@@ -75,45 +77,40 @@ export default function RecordsView() {
 
   useEffect(() => {
     fetchWebsiteRecords();
-  }, []);
+  },
+   []);
 
   const columns = [
     { field: "record_id", headerName: "ID", minWidth: 5 },
     { field: "url", headerName: "URL", minWidth: 150 },
     { field: "boundary_regexp", headerName: "Boundary RegExp", minWidth: 100 },
-    { field: "periodicity", headerName: "Periodicity", minWidth: 5 },
+    { field: "periodicity", headerName: "Periodicity", width: 100 },
     { field: "label", headerName: "Label", minWidth: 50 },
-    { field: "is_active", headerName: "Active?" },
+    { field: "is_active", headerName: "Active?", minWidth: 50 },
     { field: "tags", headerName: "Tags", minWidth: 150 },
-    { field: "last-exec-time", headerName: "Last Execution Time", minWidth: 100 },
-    { field: "last-exec-status", headerName: "Last Execution Status" },
+    { field: "last-exec-time", headerName: "Last Execution Time", width: 100 },
+    { field: "last-exec-status", headerName: "Last Execution Status", width: 50 },
     {
       field: "actions",
       headerName: "Actions",
       width: 300,
       renderCell: (params) => (
         <>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={() => handleShow(params.row.id)} // Použijeme record_id místo id
-          >
-            Show
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={() => handleEdit(params.row.id)} // Použijeme record_id místo id
-          >
-            Edit
-          </Button>
+          <Link to={`/execution/${params.row.id}`}>
+            <Button variant="outlined" color="primary" size="small">
+              Show
+            </Button>
+          </Link>
+          <Link to={`/wizard/${params.row.id}`}>
+            <Button variant="outlined" color="primary" size="small">
+              Edit
+            </Button>
+          </Link>
           <Button
             variant="outlined"
             color="secondary"
             size="small"
-            onClick={() => handleDelete(params.row.id)} // Použijeme record_id místo id
+            onClick={() => handleDelete(params.row.id)} 
           >
             Delete
           </Button>
@@ -121,7 +118,7 @@ export default function RecordsView() {
             variant="outlined"
             color="primary"
             size="small"
-            onClick={() => handleCrawl(params.row.id)} // Použijeme record_id místo id
+            onClick={() => handleCrawl(params.row.id)} 
           >
             Crawl
           </Button>
@@ -130,29 +127,6 @@ export default function RecordsView() {
     },
   ];
 
-  const handleShow = (recordId) => {
-    // Presmerovať na stránku s detailom posledného execution pre daný record <ExecutionView recordId={recordId} />
-    // Pomocou React Router <Redirect to="/execution-view/:id" />, alebo <Link to="/execution-view/:id" />
-    fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Website Record:", data.websiteRecord);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  const handleEdit = (recordId) => {
-    fetch(`http://127.0.0.1:3001/website-record/${recordId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Edit Website Record:", data.websiteRecord);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
 
   const handleDelete = (recordId) => {
     fetch(`http://127.0.0.1:3001/delete-website-record/${recordId}`, {
@@ -173,6 +147,7 @@ export default function RecordsView() {
       .then((response) => response.text())
       .then((data) => {
         console.log("Crawl Website Record:", data);
+        fetchWebsiteRecords();
       })
       .catch((error) => {
         console.error("Error:", error);

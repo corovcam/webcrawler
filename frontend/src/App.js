@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useParams } from "react-router-dom";
 import { Button, Stack, Box, CssBaseline } from '@mui/material';
 import Wizard from "./pages/wizard"
 import RecordsView from "./pages/records-view"
@@ -15,6 +15,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="wizard" element={<WizardPage />} />
+          <Route path="wizard/:recordId" element={<WizardPageId />}/>
           <Route path="view" element={<ViewPage />} />
           <Route path="execution" element={<ExecutionPage recordId={1} />} />
         </Routes>
@@ -50,6 +51,24 @@ function WizardPage() {
       <main>
         <h1>Website Record Wizard</h1>
         <Wizard />
+      </main>
+      <nav>
+        <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
+          <Button variant="contained" href="/">Home</Button>
+          <Button variant="contained" href="/view">View</Button>
+        </Stack>
+      </nav>
+    </>
+  );
+}
+
+function WizardPageId(){
+  const recordId = useParams()
+  return (
+    <>
+      <main>
+        <h1>Website Record Wizard</h1>
+        <Wizard recordId={recordId}/>
       </main>
       <nav>
         <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
