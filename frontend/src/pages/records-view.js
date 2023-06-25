@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Box } from "@mui/material";
+import { Button, Box, Stack } from "@mui/material";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -10,7 +10,7 @@ import {
 } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import { GraphVisualisationFromIds } from "../graph-visualisation.js";
 
 function EditToolbar() {
   return (
@@ -43,8 +43,9 @@ export default function RecordsView() {
               ...record,
               id: record.record_id,
               "last-exec-time": lastExecution?.end_time ?? "",
-              "last-exec-status": lastExecution?.status === 0 ? "completed" : "crawling",
-              "is_active": record.is_active === 0 ? false : true,
+              "last-exec-status":
+                lastExecution?.status === 0 ? "completed" : "crawling",
+              is_active: record.is_active === 0 ? false : true,
             };
           })
         );
@@ -88,7 +89,11 @@ export default function RecordsView() {
     { field: "is_active", headerName: "Active?", minWidth: 50 },
     { field: "tags", headerName: "Tags", minWidth: 150 },
     { field: "last-exec-time", headerName: "Last Execution Time", width: 100 },
-    { field: "last-exec-status", headerName: "Last Execution Status", width: 50 },
+    {
+      field: "last-exec-status",
+      headerName: "Last Execution Status",
+      width: 50,
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -109,7 +114,7 @@ export default function RecordsView() {
             variant="outlined"
             color="secondary"
             size="small"
-            onClick={() => handleDelete(params.row.id)} 
+            onClick={() => handleDelete(params.row.id)}
           >
             Delete
           </Button>
@@ -117,7 +122,7 @@ export default function RecordsView() {
             variant="outlined"
             color="primary"
             size="small"
-            onClick={() => handleCrawl(params.row.id)} 
+            onClick={() => handleCrawl(params.row.id)}
           >
             Crawl
           </Button>
@@ -125,7 +130,6 @@ export default function RecordsView() {
       ),
     },
   ];
-
 
   const handleDelete = (recordId) => {
     fetch(`http://127.0.0.1:3001/delete-website-record/${recordId}`, {
@@ -165,34 +169,40 @@ export default function RecordsView() {
           m: "auto auto",
         }}
       >
-        <Box sx={{ height: 550, flexGrow: 1 }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            pageSize={pageSize}
-            onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-            rowsPerPageOptions={[20, 50, 100]}
-            checkboxSelection
-            onRowSelectionModelChange={(newSelectionModel) => {
-              setSelectionModel(newSelectionModel);
-            }}
-            rowSelectionModel={selectionModel}
-            slots={{
-              toolbar: EditToolbar,
-            }}
-          />
-        </Box>
+        <Stack direction="column" spacing={2}>
+          <Box sx={{ height: 550, flexGrow: 1 }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={pageSize}
+              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+              rowsPerPageOptions={[20, 50, 100]}
+              checkboxSelection
+              onRowSelectionModelChange={(newSelectionModel) => {
+                setSelectionModel(newSelectionModel);
+              }}
+              rowSelectionModel={selectionModel}
+              slots={{
+                toolbar: EditToolbar,
+              }}
+            />
+          </Box>
+          {selectionModel.length > 0 && (
+            // <>
+            //   <Button
+            //     startIcon={<VisibilityIcon />}
+            //     // Zobraziť graf pre vybrané recordIds v selectionModel
+            //     // Graf sa zobrazí ako modal dialog (https://mui.com/components/dialogs/#modal) alebo ako nová stránka
+            //     onClick={() => graphContainerRef.current.append(<></>)}
+            //   >
+            //     Visualise Selection
+            //   </Button>
+            //   <div ref={graphContainerRef} />
+            // </>
+            <GraphVisualisationFromIds graphIds={selectionModel} />
+          )}
+        </Stack>
       </Box>
-      {selectionModel.length > 0 && (
-        <Button
-          startIcon={<VisibilityIcon />}
-          // Zobraziť graf pre vybrané recordIds v selectionModel
-          // Graf sa zobrazí ako modal dialog (https://mui.com/components/dialogs/#modal) alebo ako nová stránka
-          onClick={() => alert(JSON.stringify(selectionModel))}
-        >
-          Visualise Selection
-        </Button>
-      )}
     </>
   );
 }
