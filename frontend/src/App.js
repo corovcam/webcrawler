@@ -17,7 +17,7 @@ function App() {
           <Route path="wizard" element={<WizardPage />} />
           <Route path="wizard/:recordId" element={<WizardPageId />}/>
           <Route path="view" element={<ViewPage />} />
-          <Route path="execution" element={<ExecutionPage recordId={1} />} />
+          <Route path="execution/:recordId" element={<ExecutionPage />} />
         </Routes>
       </Box>
     </>
@@ -98,11 +98,12 @@ function ViewPage() {
 }
 
 function ExecutionPage() {
+  const { recordId } = useParams();
   return (
     <>
       <main>
         <h1>Execution View</h1>
-        <ExecutionView recordId={1} />
+        <ExecutionView recordId={recordId} />
       </main>
       <nav>
       <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
