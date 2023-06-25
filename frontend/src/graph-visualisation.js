@@ -12,42 +12,41 @@ export function GraphVisualisationFromIds({graphIds}){
     const [graphData, setGraphData] = React.useState([]);    
     const [staticGraph, setStaticGraph] = React.useState(true);
     const [lastExecutionForIds, setLastExecutionForIds] = React.useState([]);
+    const [intervalId, setIntervalId] = React.useState(0);
     const baseUrl = useContext(BaseUrlContext);
-
    
 
-    const checkLastExecution = React.useCallback((ignore) => {
+    const checkLastExecution = () => {
         if(!staticGraph){
             // LIVE mode is activated
 
             let arrayOfLastExecutions = [];
 
             const fetchLastExecutionsForIds = async () => {
-                await Promise.all(
+                const LastExecutionsForIds = await Promise.all(
                     graphIds.map(async (id) => {
                         try{
-                            const execution = await fetch(`${baseUrl}/last-execution/website-record/${id}`, {method: 'GET'});
-                            const executionResponse = await execution.json();
+                            const executionResponse = await fetch(`${baseUrl}/last-execution/website-record/${id}`, {method: 'GET'});
+                            const execution = await executionResponse.json()
+                            const executionData = execution.execution;
 
                             arrayOfLastExecutions.push({
-                                'record_id': executionResponse.execution.record_id,
-                                'execution_id': executionResponse.execution.execution_id,
-                                'end_time': executionResponse.execution.end_time
+                                'record_id': executionData.record_id,
+                                'execution_id': executionData.execution_id,
+                                'end_time': executionData.end_time
                             });
                         }
                         catch(err){
-                            console.log(err.message);
+                            console.error(err.message);
                         }
                     })
                 );
-            };
 
-            fetchLastExecutionsForIds();
-
-            if(!ignore){
+                
                 arrayOfLastExecutions.map((lastExecution) => {
+                    
                     const foundStoredExecution = lastExecutionForIds.find((storedExecution) => lastExecution.record_id === storedExecution.record_id);
-    
+                    
                     if(!foundStoredExecution){
                         setLastExecutionForIds(arrayOfLastExecutions);
                         return;
@@ -58,101 +57,124 @@ export function GraphVisualisationFromIds({graphIds}){
                             return;
                     }
                 })
-            }
-            
+
+                
+            };
+
+            fetchLastExecutionsForIds();
+
         }
-    }, [graphIds, lastExecutionForIds, staticGraph, baseUrl]);
+    };
+
+
+    const handleStaticLiveButtonClick = () => {
+        setStaticGraph(!staticGraph);    
+    };
+
+    React.useEffect(() => {
+        
+        let interval;
+        if(staticGraph){
+            clearInterval(intervalId);
+        }
+        else{
+            interval = setInterval(() => {
+                checkLastExecution();
+            }, 5000);
+
+            setIntervalId(interval);
+        }
+
+        return () => clearInterval(interval)
+        
+    }, [staticGraph, lastExecutionForIds]);
+
 
 
     React.useEffect(() => {
         let ignore = false;
-        // TODO: check how to use useRef here instead of ignore variable
-        const interval = setInterval(() => {
-            checkLastExecution(ignore);
-        }, 5000);
+        let newGrahpData = [];
+        
+        const myFunct = async () => {
+            const f = await Promise.all(
+                graphIds.map(async (id) => {
 
-        return () => {
-            ignore = true;
-            clearInterval(interval)};
-    }, [checkLastExecution]);
-
-
-
-    React.useEffect(() => {
-        let ignore = false;
-        let newGraphData = [];
-
-        graphIds.map(async (id) => {
-
-            try{
-                const websiteRecordResponse = await fetch(`${baseUrl}/website-record/${id}`, {method: 'GET'}); //get stored data for requested record
-                const websiteRecord = await websiteRecordResponse.json();
-            
-                const crawledWebsitesNodeLinksResponse = await fetch(`${baseUrl}/get-crawled-data/${id}`, {method: 'GET'}); //get crawled data for requested record
-                const crawledWebsitesNodeLinks = await crawledWebsitesNodeLinksResponse.json();
-
-                if(websiteRecordResponse.ok && crawledWebsitesNodeLinksResponse.ok){
-                    if(!ignore){
-                        const boundaryRegEx =  new RegExp(websiteRecord.websiteRecord.boundary_regexp);
-                        
-                        crawledWebsitesNodeLinks.map((nodeLink) => {
-
-                            let newNode = {};
-                            let newLinks = [];
-
-                            if(boundaryRegEx.test(nodeLink.node.url)){
-                                newNode={
-                                    ...nodeLink.node,
-                                    'passedBoundary': 'true'                
-                                };
-
-                                nodeLink.links.map((link) => {
-                                    if(boundaryRegEx.test(link.url)){
-                                        newLinks.push({
-                                            ...link,
-                                            'passedBoundary': 'true' 
-                                        });
+                    try{
+                        const websiteRecordResponse = await fetch(`${baseUrl}/website-record/${id}`, {method: 'GET'}); //get stored data for requested record
+                        const websiteRecord = await websiteRecordResponse.json();
+                    
+                        const crawledWebsitesNodeLinksResponse = await fetch(`${baseUrl}/get-crawled-data/${id}`, {method: 'GET'}); //get crawled data for requested record
+                        const crawledWebsitesNodeLinks = await crawledWebsitesNodeLinksResponse.json();
+        
+                        if(websiteRecordResponse.ok && crawledWebsitesNodeLinksResponse.ok){
+                            if(!ignore){
+                                const boundaryRegEx =  new RegExp(websiteRecord.websiteRecord.boundary_regexp);
+                                
+                                crawledWebsitesNodeLinks.map((nodeLink) => {
+        
+                                    let newNode = {};
+                                    let newLinks = [];
+        
+                                    if(boundaryRegEx.test(nodeLink.node.url)){
+                                        newNode={
+                                            ...nodeLink.node,
+                                            'passedBoundary': 'true'                
+                                        };
+        
+                                        nodeLink.links.map((link) => {
+                                            if(boundaryRegEx.test(link.url)){
+                                                newLinks.push({
+                                                    ...link,
+                                                    'passedBoundary': 'true' 
+                                                });
+                                            }
+                                            else{
+                                                newLinks.push({
+                                                    ...link,
+                                                    'passedBoundary': 'false' 
+                                                });
+                                            }
+                                        })
                                     }
                                     else{
-                                        newLinks.push({
-                                            ...link,
-                                            'passedBoundary': 'false' 
-                                        });
+                                        newNode={
+                                            ...nodeLink.node,
+                                            'passedBoundary': 'false'                
+                                        };
                                     }
+        
+                                    
+        
+                                    newGrahpData.push({
+                                        'node': newNode,
+                                        'links': newLinks
+                                    });
+                                    
+                                    
                                 })
+                                
                             }
-                            else{
-                                newNode={
-                                    ...nodeLink.node,
-                                    'passedBoundary': 'false'                
-                                };
-                            }
-
                             
-
-                            newGraphData.push({
-                                'node': newNode,
-                                'links': newLinks
-                            });
-                            
-                            
-                        })
-
-                        setGraphData(newGraphData);
+                        }
+                        else{
+                            console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse .status, crawledWebsitesNodeLinksResponse .status);
+                        }
+                    }
+                    catch(err){
+                        console.error(err.message);
+                        return (<></>);
                     }
                     
-                }
-                else{
-                    console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse.status, crawledWebsitesNodeLinksResponse.status);
-                }
-            }
-            catch(err){
-                console.log(err.message);
-                return (<></>);
-            }
-            
-                    
-        });
+                            
+                })
+
+                
+            );
+            setGraphData(newGrahpData)
+        }
+        
+        myFunct();
+        
 
         return () => {
             ignore = true;
@@ -164,7 +186,7 @@ export function GraphVisualisationFromIds({graphIds}){
 
     return(
         <>
-            <GraphVisualisation graph={graphData} staticGraphConst={staticGraph} changeStaticGraph={() => setStaticGraph(!staticGraph)}/>
+            <GraphVisualisation graph={graphData} staticGraphConst={staticGraph} changeStaticGraph={handleStaticLiveButtonClick}/>
         </>
     )
 }
@@ -176,34 +198,12 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     const [websiteView, setWebsiteView] = React.useState(true);
     const [width, setWidth] = React.useState(800);
     const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
-    //const [readyGraphForVisualisation, setReadyGraphForVisualisation] = React.useState(null);
     const backgroundClickFunction = () => setClickedgraphNode(null);
     
-    
-    //console.log('graph', graph);
-    //console.log('PREPARED', readyGraphForVisualisation);
-
     const idGraphNodes = websiteView ? 'url' : 'domain';
     const labelGraphNodes = websiteView ? 'title' : 'domain';
 
-
-
-    
-    //const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
-    //console.log('PREPARED function', preparedgraphdata);
-
-    
-/*
     React.useEffect(() => {
-        console.log('change here');
-        setReadyGraphForVisualisation(preparedgraphdata);
-        
-    },[graph, websiteView]);
-*/
-
-
-    React.useEffect(() => {
-        // TODO: check how to use useRef here
         let container = document.getElementById('containerForGraph');
         if(container){
             setWidth(container.offsetWidth - 80);
@@ -226,7 +226,6 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
     const visualiseMyGraph = () => {
-
 
         const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
 
@@ -363,18 +362,19 @@ function ShowSelectedNodeFromGraph({node}){
                 marginTop: 5
             }}>
                 
+                
                 <div style={{marginBottom:25}}>
                 <span style={{fontSize: 20  }}>Selected node from graph</span>
                     {/* TODO: Change to Create Website Record button for Boundary Nodes only */}
-                    {node!==null ? 
+                    {(node!==null && node.passedBoundary) ? 
                         <>
                             <span style={{float: "right"}}>
                                 <Button 
                                     size="large" 
                                     variant="outlined"
-                                    href={`/executionview/${node.recordId}`}
+                                    href={`/wizard?url=${node.url}`}
                                 >
-                                    SHOW EXECUTION VIEW
+                                    CREATE WEBSITE RECORD
                                 </Button>
                             </span>
                         </>
@@ -383,6 +383,9 @@ function ShowSelectedNodeFromGraph({node}){
                     }
                     
                 </div>
+                    
+                    
+                
                 {node!==null ? 
                     <>
                         { !node['domain'] ?  
