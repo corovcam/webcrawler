@@ -4,22 +4,25 @@ import { Button, Stack, Box, CssBaseline } from '@mui/material';
 import Wizard from "./pages/wizard"
 import RecordsView from "./pages/records-view"
 import ExecutionView from "./pages/execution-view"
+import { BaseUrlContext } from "./base-url-context";
 
+const baseUrl = "http://localhost:3001";
 
 function App() {
   return (
     <>
-      <CssBaseline enableColorScheme />
-      <Box sx={{ textAlign: 'center' }}>
-        {/* TODO: Modify React Router for Execution with parameters */}
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="wizard" element={<WizardPage />} />
-          <Route path="wizard/:recordId" element={<WizardPageId />}/>
-          <Route path="view" element={<ViewPage />} />
-          <Route path="execution/:recordId" element={<ExecutionPage />} />
-        </Routes>
-      </Box>
+      <BaseUrlContext.Provider value={baseUrl}>
+        <CssBaseline enableColorScheme />
+        <Box sx={{ textAlign: 'center' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="wizard" element={<WizardPage />} />
+            <Route path="wizard/:recordId" element={<WizardPageId />}/>
+            <Route path="view" element={<ViewPage />} />
+            <Route path="execution/:recordId" element={<ExecutionPage />} />
+          </Routes>
+        </Box>
+      </BaseUrlContext.Provider>
     </>
   );
 }

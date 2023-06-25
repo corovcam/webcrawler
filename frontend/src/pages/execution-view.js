@@ -13,7 +13,7 @@ import {
 import { BaseUrlContext } from "../base-url-context";
 
 export default function ExecutionView({ recordId }) {
-  const baseUrl = "http://localhost:3001";
+  const baseUrl = useContext(BaseUrlContext);
 
   const [requestedRecord, setRequestedRecord] = React.useState(null);
 
@@ -63,13 +63,11 @@ export default function ExecutionView({ recordId }) {
   return (
     <>
       <Box sx={{ width: 5 / 8, margin: "auto auto" }}>
-        <BaseUrlContext.Provider value={baseUrl}>
-          <CrawledRecordInfo
-            record={requestedRecord}
-            listExecutions={requestedExecutions}
-          />
-          <GraphVisualisationFromIds graphIds={idForGraph} />
-        </BaseUrlContext.Provider>
+        <CrawledRecordInfo
+          record={requestedRecord}
+          listExecutions={requestedExecutions}
+        />
+        <GraphVisualisationFromIds graphIds={idForGraph} />
       </Box>
     </>
   );
