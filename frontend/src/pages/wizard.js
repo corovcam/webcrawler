@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Stack, TextField, Button, Switch, Box, IconButton, Tooltip, InputAdornment } from '@mui/material';
 import { FormControl, FormControlLabel, FormLabel } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { Navigate } from 'react-router-dom';
 
 export default class Wizard extends React.Component {
   constructor(props) {
@@ -12,7 +13,8 @@ export default class Wizard extends React.Component {
       periodicity: 0,
       label: "",
       is_active: true,
-      tags: []
+      tags: [],
+      submitted: false,
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -43,7 +45,7 @@ export default class Wizard extends React.Component {
             boundary_regexp: websiteRecord.boundary_regexp,
             periodicity: websiteRecord.periodicity,
             label: websiteRecord.label,
-            is_active: websiteRecord.is_active,
+            is_active: websiteRecord.is_active === 1 ? true : false,
             tags: websiteRecord.tags
           });
         })
@@ -92,23 +94,26 @@ export default class Wizard extends React.Component {
     }
   }
 
-  handleSubmit() {
+  handleSubmit(event) {
+    event.preventDefault();
+
     const { recordId } = this.props;
     const { url, boundary_regexp, periodicity, label, is_active, tags } = this.state;
 
-    const data = JSON.stringify({
+    let data = {
       url,
       boundary_regexp,
       periodicity,
       label,
       is_active,
       tags
-    });
+    };
 
     let apiUrl = 'http://127.0.0.1:3001/add-website-record';
 
     if (recordId?.recordId) {
       apiUrl = `http://127.0.0.1:3001/update-website-record`;
+      data = {...data, record_id: recordId.recordId}
     }
 
     fetch(apiUrl, {
@@ -116,11 +121,11 @@ export default class Wizard extends React.Component {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: data
+      body: JSON.stringify(data)
     })
       .then(response => {
         if (response.ok) {
-          return response.json();
+          return recordId?.recordId ? response.text() : response.json();
         } else if (response.status === 404) {
           throw new Error('Record not found');
         } else if (response.status === 500) {
@@ -129,9 +134,18 @@ export default class Wizard extends React.Component {
           throw new Error('Error saving record');
         }
       })
-      .then(json => {
-        const { recordId, message } = json;
-        alert(`Record saved successfully!\nRecord ID: ${recordId}\nMessage: ${message}`);
+      .then(data => {
+        if (recordId?.recordId) {
+          // UPDATE returns a string
+          alert(data); 
+        } else {
+          // ADD returns JSON
+          const { recordId, message } = data;
+          alert(`Record saved successfully!\nRecord ID: ${recordId}\nMessage: ${message}`);
+        }
+        this.setState({
+          submitted: true
+        });
       })
       .catch(error => {
         console.error(error);
@@ -141,11 +155,13 @@ export default class Wizard extends React.Component {
 
   render() {
     const { recordId } = this.props;
-    const { url, boundary_regexp, periodicity, label, is_active, tags } = this.state;
+    const { url, boundary_regexp, periodicity, label, is_active, tags, submitted } = this.state;
 
     return (
+      <>
+      {submitted && (<Navigate to="/view" replace={true} />)}
       <Box sx={{ width: "50%", margin: "auto auto", padding: "1%", border: "2px solid black" }}>
-        <Stack component="form" onSubmit={this.handleSubmit} spacing={3} justifyContent="center" alignItems="center">
+        <Stack component="form" onSubmit={(event) => this.handleSubmit(event)} spacing={3} justifyContent="center" alignItems="center">
           {/* URL */}
           <FormControl fullWidth>
             <FormLabel id="url-label">URL</FormLabel>
@@ -244,6 +260,7 @@ export default class Wizard extends React.Component {
           <Button variant="outlined" type="submit">{recordId ? 'Update' : 'Submit'}</Button>
         </Stack>
       </Box>
+      </>
     );
   }
 }

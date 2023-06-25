@@ -31,7 +31,7 @@ export default function RecordsView() {
   const [selectionModel, setSelectionModel] = useState([]);
   const [rows, setRows] = useState([]);
 
-  const fetchWebsiteRecords = async () => {
+  const fetchWebsiteRecords = React.useCallback(async () => {
     try {
       const response = await fetch("http://127.0.0.1:3001/website-records");
       if (response.ok) {
@@ -55,7 +55,7 @@ export default function RecordsView() {
     } catch (error) {
       console.error("Error while fetching website records:", error);
     }
-  };
+  }, []);
 
   const fetchLastExecution = async (recordId) => {
     try {
@@ -77,8 +77,7 @@ export default function RecordsView() {
 
   useEffect(() => {
     fetchWebsiteRecords();
-  },
-   []);
+  }, [fetchWebsiteRecords]);
 
   const columns = [
     { field: "record_id", headerName: "ID", minWidth: 5 },
