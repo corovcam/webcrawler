@@ -16,14 +16,14 @@ export function GraphVisualisationFromIds({graphIds}){
     const baseUrl = useContext(BaseUrlContext);
    
 
-    const checkLastExecution = () => {
-        if(!staticGraph){
+    const checkLastExecution = React.useCallback(() => {
+        if(!staticGraph) {
             // LIVE mode is activated
 
             let arrayOfLastExecutions = [];
 
             const fetchLastExecutionsForIds = async () => {
-                const LastExecutionsForIds = await Promise.all(
+                await Promise.all(
                     graphIds.map(async (id) => {
                         try{
                             const executionResponse = await fetch(`${baseUrl}/last-execution/website-record/${id}`, {method: 'GET'});
@@ -57,14 +57,12 @@ export function GraphVisualisationFromIds({graphIds}){
                             return;
                     }
                 })
-
-                
-            };
+            }
 
             fetchLastExecutionsForIds();
 
         }
-    };
+    }, [staticGraph, lastExecutionForIds, graphIds, baseUrl]);
 
 
     const handleStaticLiveButtonClick = () => {
@@ -87,7 +85,7 @@ export function GraphVisualisationFromIds({graphIds}){
 
         return () => clearInterval(interval)
         
-    }, [staticGraph, lastExecutionForIds]);
+    }, [staticGraph, checkLastExecution, intervalId]);
 
 
 
@@ -96,9 +94,8 @@ export function GraphVisualisationFromIds({graphIds}){
         let newGrahpData = [];
         
         const myFunct = async () => {
-            const f = await Promise.all(
+            await Promise.all(
                 graphIds.map(async (id) => {
-
                     try{
                         const websiteRecordResponse = await fetch(`${baseUrl}/website-record/${id}`, {method: 'GET'}); //get stored data for requested record
                         const websiteRecord = await websiteRecordResponse.json();
@@ -142,9 +139,6 @@ export function GraphVisualisationFromIds({graphIds}){
                                             'passedBoundary': 'false'                
                                         };
                                     }
-        
-                                    
-        
                                     newGrahpData.push({
                                         'node': newNode,
                                         'links': newLinks
@@ -157,7 +151,7 @@ export function GraphVisualisationFromIds({graphIds}){
                             
                         }
                         else{
-                            console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse .status, crawledWebsitesNodeLinksResponse .status);
+                            console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse.status, crawledWebsitesNodeLinksResponse.status);
                         }
                     }
                     catch(err){
@@ -194,7 +188,8 @@ export function GraphVisualisationFromIds({graphIds}){
 
 
 export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph}){
-    
+    const containerForGraphRef = React.useRef(null);
+
     const [websiteView, setWebsiteView] = React.useState(true);
     const [width, setWidth] = React.useState(800);
     const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
@@ -204,11 +199,10 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     const labelGraphNodes = websiteView ? 'title' : 'domain';
 
     React.useEffect(() => {
-        let container = document.getElementById('containerForGraph');
-        if(container){
-            setWidth(container.offsetWidth - 80);
+        if(containerForGraphRef.current !== null){
+            setWidth(containerForGraphRef.current.offsetWidth - 80);
         }
-    });
+    }, []);
     
     const getNodeColor = (node) => {
         if(clickedgraphNode !== null && node.url === clickedgraphNode.url){
@@ -287,7 +281,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
                 marginTop: 5,
                 marginBottom: 5,
                 width: 1
-            }} id='containerForGraph'>
+            }} ref={containerForGraphRef}>
 
                 <Box sx={{
                     display: 'flex',
@@ -348,7 +342,6 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
 function ShowSelectedNodeFromGraph({node}){
-    const baseUrl = useContext(BaseUrlContext);
     return(
         <>
             <Box sx={{
