@@ -16,23 +16,23 @@ export function GraphVisualisationFromIds({graphIds}){
 
    
 
-    const checkLastExecution = (ignore) => {
+    const checkLastExecution = React.useCallback((ignore) => {
         if(!staticGraph){
             // LIVE mode is activated
 
             let arrayOfLastExecutions = [];
 
             const fetchLastExecutionsForIds = async () => {
-                const LastExecutionsForIds = await Promise.all(
+                await Promise.all(
                     graphIds.map(async (id) => {
                         try{
                             const execution = await fetch(`${baseUrl}/last-execution/website-record/${id}`, {method: 'GET'});
                             const executionResponse = await execution.json();
 
                             arrayOfLastExecutions.push({
-                                'record_id': executionResponse.record_id,
-                                'execution_id': executionResponse.execution_id,
-                                'end_time': executionResponse.end_time
+                                'record_id': executionResponse.execution.record_id,
+                                'execution_id': executionResponse.execution.execution_id,
+                                'end_time': executionResponse.execution.end_time
                             });
                         }
                         catch(err){
@@ -61,11 +61,12 @@ export function GraphVisualisationFromIds({graphIds}){
             }
             
         }
-    };
+    }, [graphIds, lastExecutionForIds, staticGraph, baseUrl]);
 
 
     React.useEffect(() => {
         let ignore = false;
+        // TODO: check how to use useRef here instead of ignore variable
         const interval = setInterval(() => {
             checkLastExecution(ignore);
         }, 5000);
@@ -73,13 +74,13 @@ export function GraphVisualisationFromIds({graphIds}){
         return () => {
             ignore = true;
             clearInterval(interval)};
-    }, []);
+    }, [checkLastExecution]);
 
 
 
     React.useEffect(() => {
         let ignore = false;
-        let newGrahpData = [];
+        let newGraphData = [];
 
         graphIds.map(async (id) => {
 
@@ -129,18 +130,20 @@ export function GraphVisualisationFromIds({graphIds}){
 
                             
 
-                            newGrahpData.push({
+                            newGraphData.push({
                                 'node': newNode,
                                 'links': newLinks
                             });
                             
                             
                         })
+
+                        setGraphData(newGraphData);
                     }
                     
                 }
                 else{
-                    console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse .status, crawledWebsitesNodeLinksResponse .status);
+                    console.error('ERROR! while fetching data for graph. Status website-record/get-crawled-data:', websiteRecordResponse.status, crawledWebsitesNodeLinksResponse.status);
                 }
             }
             catch(err){
@@ -149,9 +152,7 @@ export function GraphVisualisationFromIds({graphIds}){
             }
             
                     
-        })
-            
-        setGraphData(newGrahpData);
+        });
 
         return () => {
             ignore = true;
@@ -202,6 +203,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
     React.useEffect(() => {
+        // TODO: check how to use useRef here
         let container = document.getElementById('containerForGraph');
         if(container){
             setWidth(container.offsetWidth - 80);
@@ -363,6 +365,7 @@ function ShowSelectedNodeFromGraph({node}){
                 
                 <div style={{marginBottom:25}}>
                 <span style={{fontSize: 20  }}>Selected node from graph</span>
+                    {/* TODO: Change to Create Website Record button for Boundary Nodes only */}
                     {node!==null ? 
                         <>
                             <span style={{float: "right"}}>
