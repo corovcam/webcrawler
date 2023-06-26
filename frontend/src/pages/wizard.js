@@ -46,7 +46,7 @@ export default class Wizard extends React.Component {
             periodicity: websiteRecord.periodicity,
             label: websiteRecord.label,
             is_active: websiteRecord.is_active === 1 ? true : false,
-            tags: websiteRecord.tags
+            tags: JSON.parse(websiteRecord.tags),
           });
         })
         .catch(error => {
