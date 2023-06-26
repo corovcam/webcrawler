@@ -114,20 +114,20 @@ export function GraphVisualisationFromIds({graphIds}){
                                     if(boundaryRegEx.test(nodeLink.node.url)){
                                         newNode={
                                             ...nodeLink.node,
-                                            'passedBoundary': 'true'                
+                                            'passedBoundary': true                
                                         };
         
                                         nodeLink.links.map((link) => {
                                             if(boundaryRegEx.test(link.url)){
                                                 newLinks.push({
                                                     ...link,
-                                                    'passedBoundary': 'true' 
+                                                    'passedBoundary': true
                                                 });
                                             }
                                             else{
                                                 newLinks.push({
                                                     ...link,
-                                                    'passedBoundary': 'false' 
+                                                    'passedBoundary': false
                                                 });
                                             }
                                         })
@@ -135,7 +135,7 @@ export function GraphVisualisationFromIds({graphIds}){
                                     else{
                                         newNode={
                                             ...nodeLink.node,
-                                            'passedBoundary': 'false'                
+                                            'passedBoundary': false                
                                         };
                                     }
                                     newGrahpData.push({
