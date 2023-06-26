@@ -84,7 +84,7 @@ export function GraphVisualisationFromIds({graphIds}){
 
         return () => clearInterval(intervalRef.current)
         
-    }, [staticGraph, checkLastExecution, intervalId]);
+    }, [staticGraph, checkLastExecution, intervalRef]);
 
 
 
