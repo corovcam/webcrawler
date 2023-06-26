@@ -12,8 +12,8 @@ export function GraphVisualisationFromIds({graphIds}){
     const [graphData, setGraphData] = React.useState([]);    
     const [staticGraph, setStaticGraph] = React.useState(true);
     const [lastExecutionForIds, setLastExecutionForIds] = React.useState([]);
-    const [intervalId, setIntervalId] = React.useState(0);
     const baseUrl = useContext(BaseUrlContext);
+    const intervalRef = React.useRef();
    
 
     const checkLastExecution = React.useCallback(() => {
@@ -71,21 +71,20 @@ export function GraphVisualisationFromIds({graphIds}){
 
     React.useEffect(() => {
         
-        let interval;
         if(staticGraph){
-            clearInterval(intervalId);
+            clearInterval(intervalRef.current);
         }
         else{
-            interval = setInterval(() => {
+            const interval = setInterval(() => {
                 checkLastExecution();
             }, 5000);
 
-            setIntervalId(interval);
+            intervalRef.current = interval;
         }
 
-        return () => clearInterval(interval)
+        return () => clearInterval(intervalRef.current)
         
-    }, [staticGraph, checkLastExecution, intervalId]);
+    }, [staticGraph, checkLastExecution, intervalRef]);
 
 
 
@@ -115,20 +114,20 @@ export function GraphVisualisationFromIds({graphIds}){
                                     if(boundaryRegEx.test(nodeLink.node.url)){
                                         newNode={
                                             ...nodeLink.node,
-                                            'passedBoundary': 'true'                
+                                            'passedBoundary': true                
                                         };
         
                                         nodeLink.links.map((link) => {
                                             if(boundaryRegEx.test(link.url)){
                                                 newLinks.push({
                                                     ...link,
-                                                    'passedBoundary': 'true' 
+                                                    'passedBoundary': true
                                                 });
                                             }
                                             else{
                                                 newLinks.push({
                                                     ...link,
-                                                    'passedBoundary': 'false' 
+                                                    'passedBoundary': false
                                                 });
                                             }
                                         })
@@ -136,7 +135,7 @@ export function GraphVisualisationFromIds({graphIds}){
                                     else{
                                         newNode={
                                             ...nodeLink.node,
-                                            'passedBoundary': 'false'                
+                                            'passedBoundary': false                
                                         };
                                     }
                                     newGrahpData.push({

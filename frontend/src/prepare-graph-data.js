@@ -1,45 +1,6 @@
 import React from "react";
 
 
-
-
-/*
-/get-crawled-data/{id}:
-    '200':
-        description: Successful operation
-        content:
-        application/json:
-            schema:
-            type: array
-            items:
-                $ref: '#/components/schemas/NodeLinks'
-
-NodeLinks:
-      type: object
-      properties:
-        node:
-          $ref: '#/components/schemas/Node'
-        links:
-          type: array
-          items:
-            $ref: '#/components/schemas/Node'
-    Node:
-      type: object
-      properties:
-        recordId:
-          type: integer
-        crawlTime:
-          type: integer
-        title:
-          type: string
-        url:
-          type: string
-
-
-
-*/
-
-
 export const getPreparedDataForGraphVisualisation = ({graphData, isRequestedWebsiteView}) => {
     
     let preparedGraph = null;

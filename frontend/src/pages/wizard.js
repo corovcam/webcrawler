@@ -160,7 +160,7 @@ export default class Wizard extends React.Component {
     return (
       <>
       {submitted && (<Navigate to="/view" replace={true} />)}
-      <Box sx={{ width: "50%", margin: "auto auto", padding: "1%", border: "2px solid black" }}>
+      <Box sx={{ width: "50%", margin: "auto auto", padding: "1%", border: "2px solid black", borderRadius: '16px' }}>
         <Stack component="form" onSubmit={(event) => this.handleSubmit(event)} spacing={3} justifyContent="center" alignItems="center">
           {/* URL */}
           <FormControl fullWidth>
