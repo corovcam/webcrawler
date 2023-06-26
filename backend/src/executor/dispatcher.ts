@@ -51,9 +51,10 @@ export default class Dispatcher {
             i--;
             continue;
           }
-          if (lastExecution && this.recordExecutions[record.id] === lastExecution.id) {
-            if (!record.requestDoCrawl) continue;
-          }
+          // TODO: Check if this is necessary for Periodicity feature
+          // if (lastExecution && this.recordExecutions[record.id] === lastExecution.id) {
+          //   if (!record.requestDoCrawl) continue;
+          // }
           record.lastExecution = lastExecution ?? null;
 
           if (this.crawlCheck(record)) {

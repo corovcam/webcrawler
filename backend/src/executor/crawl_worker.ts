@@ -32,7 +32,7 @@ export default class CrawlWorker {
     node.url = url;
 
     if (!response || response.status !== 200) {
-      node.title = response ? `[ERROR ${response.status} - ${response.statusText}]` : "[ERROR]";
+      node.title = response ? `[ERROR ${response?.status} - ${response?.statusText}]` : "[ERROR]";
       node.crawlTime = 0;
       node.links = [];
       if (this.nodes.every((item) => item.url !== node.url)) {
