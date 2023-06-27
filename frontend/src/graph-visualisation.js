@@ -357,8 +357,7 @@ function ShowSelectedNodeFromGraph({node}){
                 
                 <div style={{marginBottom:25}}>
                 <span style={{fontSize: 20  }}>Selected node from graph</span>
-                    {/* TODO: Change to Create Website Record button for Boundary Nodes only */}
-                    {(node!==null && node.passedBoundary) ? 
+                    {(node!==null && !node.passedBoundary) ? 
                         <>
                             <span style={{float: "right"}}>
                                 <Button 
