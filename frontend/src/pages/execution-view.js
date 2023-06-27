@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import { GraphVisualisationFromIds } from "../graph-visualisation";
-import { BaseUrlContext } from "../base-url-context";
+import { GraphVisualisationFromIds } from "../components/graph-visualisation";
+import { BaseUrlContext } from "../utils/base-url-context";
 import { DataGrid } from "@mui/x-data-grid";
 
 export default function ExecutionView({ recordId }) {
@@ -113,10 +113,13 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
             </div>
             URL: <span style={{ float: "right" }}>{record.url}</span>
             <hr />
-            Boundary REGEX: <span style={{ float: "right" }}>{record.boundary_regexp}</span>
+            Boundary REGEX:{" "}
+            <span style={{ float: "right" }}>{record.boundary_regexp}</span>
             <hr />
             Status – active:{" "}
-            <span style={{ float: "right" }}>{(record.is_active === 0 ? "false" : "true")}</span>
+            <span style={{ float: "right" }}>
+              {record.is_active === 0 ? "false" : "true"}
+            </span>
             <hr />
             Record ID:{" "}
             <span style={{ float: "right" }}>{record.record_id}</span>
@@ -125,9 +128,11 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
             <span style={{ float: "right" }}>{record.periodicity}</span>
             <hr />
             Executions for this node:
-            
             {listExecutions !== [] ? (
-              <Executions executionsData={listExecutions} recordLabel={record.label} />
+              <Executions
+                executionsData={listExecutions}
+                recordLabel={record.label}
+              />
             ) : (
               <>
                 <br />
@@ -145,40 +150,35 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
   );
 }
 
-
-
 function Executions({ executionsData, recordLabel }) {
-
   const columns = [
-    { field: "recordLabel", headerName: "Record label", minWidth: 320},
-    { field: "start_time", headerName: "Started", minWidth: 200},
-    { field: "end_time", headerName: "Ended", minWidth: 200},
-    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50}
+    { field: "recordLabel", headerName: "Record label", minWidth: 320 },
+    { field: "start_time", headerName: "Started", minWidth: 200 },
+    { field: "end_time", headerName: "Ended", minWidth: 200 },
+    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50 },
   ];
 
-
   try {
-    const items = executionsData.map((ex) => (
-      {
-        ...ex,
-        "recordLabel": recordLabel,
-        "id": ex.execution_id
-      }
-    ));
-
+    const items = executionsData.map((ex) => ({
+      ...ex,
+      recordLabel: recordLabel,
+      id: ex.execution_id,
+    }));
 
     return (
-      <Box sx={{
-        marginTop: 3,
-        '& .red': {
-          backgroundColor: '#FEBDAA',
-          color: 'black',
-        },
-        '& .green': {
-          backgroundColor: '#D3FEAA',
-          color: 'black',
-        },
-      }}>
+      <Box
+        sx={{
+          marginTop: 3,
+          "& .red": {
+            backgroundColor: "#FEBDAA",
+            color: "black",
+          },
+          "& .green": {
+            backgroundColor: "#D3FEAA",
+            color: "black",
+          },
+        }}
+      >
         <DataGrid
           sx={{
             width: "100%",
@@ -206,5 +206,3 @@ function Executions({ executionsData, recordLabel }) {
     return <></>;
   }
 }
-
-
