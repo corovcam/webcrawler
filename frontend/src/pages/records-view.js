@@ -46,7 +46,7 @@ export default function RecordsView() {
               "last-exec-status":
                 lastExecution?.status === 0 ? "completed" : "crawling",
               "is_active": record.is_active === 0 ? false : true,
-              "tags": JSON.parse(record.tags),
+              "tags": record.tags,
             };
           })
         );
