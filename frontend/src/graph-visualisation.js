@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import { getPreparedDataForGraphVisualisation } from "./prepare-graph-data";
 import { useContext } from "react";
 import { BaseUrlContext } from "./base-url-context";
+import { List, ListItem, ListItemText } from "@mui/material";
 
 
 
@@ -350,7 +351,7 @@ function ShowSelectedNodeFromGraph({node}){
                 textAlign: "left",
                 padding: 5,
                 width: 1,
-                height: 280,
+                maxHeight: 580,
                 marginTop: 5
             }}>
                 
@@ -392,9 +393,19 @@ function ShowSelectedNodeFromGraph({node}){
                         <hr />
                         URL: <span style={{float: "right"}}>{node.url}</span>
                         <hr/>
-                        Record ID:  <span style={{float: "right"}}>{node.recordId}</span>
-                        <hr/>
                         Crawl time: <span style={{float: "right"}}>{node.crawlTime}</span>
+                        <hr/>
+                        { !node['domain'] ?
+                            <>
+                            Records that crawled this node:
+                                <ListRecordsCrawledThisNode node={node}/>
+                            </>
+                            :
+                            <>
+                            Record ID:  <span style={{float: "right"}}>{node.recordId}</span>
+                            </>                         
+                        }
+                        
                     </>                    
 
                     :
@@ -408,4 +419,37 @@ function ShowSelectedNodeFromGraph({node}){
     );
 }
 
+function ListRecordsCrawledThisNode({node}){
+    
+    const listItems = node.listNodesCrawledThisNode.map((i) => {
+        return(
+            <ListItem key={i.recordId}>
+                <ListItemText
+                    id={i.recordId}
+                    primary={`Record ID: ${i.recordId}`}
+                    
+                />
+                <Button
+                            size="large"
+                            variant="outlined"
+                            href={`/execution/${node.recordId}`}
+                        >
+                            SHOW EXECUTION VIEW
+                        </Button>
+            </ListItem>
+        );
+    })
 
+    return(
+        <>
+            <List sx={{
+                width: '100%',
+                bgcolor: 'background.paper',
+                overflow: 'auto',
+                maxHeight: 300,
+            }}>
+                {listItems}
+            </List> 
+        </>
+    );
+}

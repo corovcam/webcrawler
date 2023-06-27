@@ -183,7 +183,7 @@ function Executions({ executionsData, recordLabel }) {
           sx={{
             width: "100%",
             bgcolor: "background.paper",
-            maxHeight: 400,
+            height: 370,
           }}
           initialState={{
             pagination: {

@@ -25,12 +25,18 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
     graphData.map((data) => {
         
         if(newNodes.every((node) => node.url !== data.node.url)){
-            newNodes.push(data.node);
+            newNodes.push({
+                ...data.node,
+                'listNodesCrawledThisNode': []
+            });
         }
 
         data.links.map((link) => {
             if(newNodes.every((node) => node.url !== link.url)){
-                newNodes.push(link);
+                newNodes.push({
+                    ...link,
+                    'listNodesCrawledThisNode': []
+                });
             }
 
             newLinks.push({
@@ -40,6 +46,38 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
         });
     });
     
+    
+    let newNodesWithCrawledList = [];
+
+    newLinks.map((link) => {
+        const nodeSource = newNodes.find((node) => node.url === link.source);
+        const nodeTarget = newNodes.find((node) => node.url === link.target);
+
+        if(nodeSource && nodeTarget){
+            newNodes = newNodes.map((node) => {
+                if(nodeTarget.url === node.url){
+                    if(!node.listNodesCrawledThisNode.find((r) => r.recordId === nodeSource.recordId)){
+                        return ({
+                            ...node,
+                            "listNodesCrawledThisNode": [
+                                ...node.listNodesCrawledThisNode,
+                                {
+                                    "recordId": nodeSource.recordId,
+                                    "title": nodeSource.title
+                                }
+                            ] 
+                        });
+                    }
+                    
+                }
+                return node;
+                
+            })
+        }
+        
+    })
+
+
     const myGraph = {
         'nodes': newNodes,
         'links': newLinks
