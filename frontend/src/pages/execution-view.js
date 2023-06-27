@@ -121,7 +121,7 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
             Record ID:{" "}
             <span style={{ float: "right" }}>{record.record_id}</span>
             <hr />
-            Crawl time:{" "}
+            Periodicity:{" "}
             <span style={{ float: "right" }}>{record.periodicity}</span>
             <hr />
             Executions for this node:
