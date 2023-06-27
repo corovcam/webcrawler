@@ -26,6 +26,10 @@ export default class Wizard extends React.Component {
 
   componentDidMount() {
     const { recordId } = this.props;
+    const { url } = Object.fromEntries(new URLSearchParams(window.location.search));
+    this.setState({
+      url: url,
+    })
 
     if (recordId?.recordId) {
       fetch(`http://127.0.0.1:3001/website-record/${recordId.recordId}`)
