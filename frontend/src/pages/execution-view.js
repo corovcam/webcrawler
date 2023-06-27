@@ -1,16 +1,9 @@
-import React, { createContext, useContext } from "react";
+import React, { useContext } from "react";
 import Button from "@mui/material/Button";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import ForceGraph2D from "react-force-graph-2d";
-import {
-  GraphVisualisation,
-  GraphVisualisationFromIds,
-} from "../graph-visualisation";
+import { GraphVisualisationFromIds } from "../graph-visualisation";
 import { BaseUrlContext } from "../base-url-context";
+import { DataGrid } from "@mui/x-data-grid";
 
 export default function ExecutionView({ recordId }) {
   const baseUrl = useContext(BaseUrlContext);
@@ -56,7 +49,7 @@ export default function ExecutionView({ recordId }) {
     return () => {
       ignore = true;
     };
-  }, [recordId]);
+  }, [recordId, baseUrl]);
 
   const idForGraph = [recordId];
 
@@ -120,18 +113,21 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
             </div>
             URL: <span style={{ float: "right" }}>{record.url}</span>
             <hr />
+            Boundary REGEX: <span style={{ float: "right" }}>{record.boundary_regexp}</span>
+            <hr />
             Status – active:{" "}
-            <span style={{ float: "right" }}>{record.is_active}</span>
+            <span style={{ float: "right" }}>{(record.is_active === 0 ? "false" : "true")}</span>
             <hr />
             Record ID:{" "}
             <span style={{ float: "right" }}>{record.record_id}</span>
             <hr />
-            Crawl time:{" "}
+            Periodicity:{" "}
             <span style={{ float: "right" }}>{record.periodicity}</span>
             <hr />
             Executions for this node:
+            
             {listExecutions !== [] ? (
-              <Executions executionsData={listExecutions} />
+              <Executions executionsData={listExecutions} recordLabel={record.label} />
             ) : (
               <>
                 <br />
@@ -149,70 +145,66 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
   );
 }
 
-function Executions({ executionsData }) {
+
+
+function Executions({ executionsData, recordLabel }) {
+
+  const columns = [
+    { field: "recordLabel", headerName: "Record label", minWidth: 320},
+    { field: "start_time", headerName: "Started", minWidth: 200},
+    { field: "end_time", headerName: "Ended", minWidth: 200},
+    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50}
+  ];
+
+
   try {
-    const listItems = executionsData.map((ex) => (
-      <Execution key={ex.execution_id} executionData={ex} />
+    const items = executionsData.map((ex) => (
+      {
+        ...ex,
+        "recordLabel": recordLabel,
+        "id": ex.execution_id
+      }
     ));
+
+
     return (
-      <>
-        <List
+      <Box sx={{
+        marginTop: 3,
+        '& .red': {
+          backgroundColor: '#FEBDAA',
+          color: 'black',
+        },
+        '& .green': {
+          backgroundColor: '#D3FEAA',
+          color: 'black',
+        },
+      }}>
+        <DataGrid
           sx={{
             width: "100%",
             bgcolor: "background.paper",
-            maxHeight: 650,
-            overflow: "auto",
+            height: 370,
           }}
-        >
-          {listItems}
-        </List>
-      </>
+          initialState={{
+            pagination: {
+              paginationModel: {
+                pageSize: 5,
+              },
+            },
+          }}
+          columns={columns}
+          rows={items}
+          disableRowSelectionOnClick
+          pageSizeOptions={[5]}
+          getRowClassName={(r) => {
+            return r.status === 0 ? "red" : "green";
+          }}
+        />
+      </Box>
     );
   } catch (err) {
     return <></>;
   }
 }
 
-function Execution({ executionData }) {
-  return (
-    <>
-      <ListItem key={executionData.execution_id}>
-        <ListItemText
-          id={executionData.execution_id}
-          primary={`Execution ID: ${executionData.execution_id}`}
-          secondary={
-            <React.Fragment>
-              <Typography
-                sx={{ display: "inline", marginLeft: 3 }}
-                component="span"
-                variant="body2"
-                color="text.primary"
-              >
-                Started:
-              </Typography>
-              {` ${executionData.start_time} `}
-              <Typography
-                sx={{ display: "inline", marginLeft: 2 }}
-                component="span"
-                variant="body2"
-                color="text.primary"
-              >
-                Ended:
-              </Typography>
-              {` ${executionData.end_time} `}
-              <Typography
-                sx={{ display: "inline", marginLeft: 2 }}
-                component="span"
-                variant="body2"
-                color="text.primary"
-              >
-                Websites crawled:
-              </Typography>
-              {` ${executionData.sites_crawled_count}`}
-            </React.Fragment>
-          }
-        />
-      </ListItem>
-    </>
-  );
-}
+
