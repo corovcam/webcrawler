@@ -4,7 +4,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import Button from '@mui/material/Button';
 import { getPreparedDataForGraphVisualisation } from "../utils/prepare-graph-data";
 import { useContext } from "react";
-import { BaseUrlContext } from "./base-url-context";
+import { BaseUrlContext } from "../utils/base-url-context";
 import { List, ListItem, ListItemText } from "@mui/material";
 
 

@@ -153,9 +153,21 @@ function CrawledRecordInfo({ record, listExecutions = [] }) {
 function Executions({ executionsData, recordLabel }) {
   const columns = [
     { field: "recordLabel", headerName: "Record label", minWidth: 320 },
-    { field: "start_time", headerName: "Started", minWidth: 200 },
-    { field: "end_time", headerName: "Ended", minWidth: 200 },
-    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50 },
+    {
+      field: "start_time",
+      headerName: "Started",
+      minWidth: 200,
+      type: "dateTime",
+      valueGetter: ({ value }) => value && new Date(value),
+    },
+    {
+      field: "end_time",
+      headerName: "Ended",
+      minWidth: 200,
+      type: "dateTime",
+      valueGetter: ({ value }) => value && new Date(value),
+    },
+    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50, type: "number" }
   ];
 
   try {

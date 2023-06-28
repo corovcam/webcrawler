@@ -44,7 +44,7 @@ export default function RecordsView() {
               id: record.record_id,
               "last-exec-time": lastExecution?.end_time ?? "",
               "last-exec-status":
-                lastExecution?.status === 0 ? "completed" : "crawling",
+                record?.is_being_crawled === 0 ? true : false,
               is_active: record.is_active === 0 ? false : true,
               tags: record.tags,
             };
@@ -85,20 +85,25 @@ export default function RecordsView() {
     { field: "record_id", headerName: "ID", minWidth: 5 },
     { field: "url", headerName: "URL", minWidth: 150 },
     { field: "boundary_regexp", headerName: "Boundary RegExp", minWidth: 100 },
-    { field: "periodicity", headerName: "Periodicity", width: 100 },
+    { field: "periodicity", headerName: "Periodicity", type: "number" },
     { field: "label", headerName: "Label", minWidth: 50 },
-    { field: "is_active", headerName: "Active?", minWidth: 50 },
+    { field: "is_active", headerName: "Active?", type: "boolean" },
     { field: "tags", headerName: "Tags", minWidth: 150 },
-    { field: "last-exec-time", headerName: "Last Execution Time", width: 100 },
+    {
+      field: "last-exec-time",
+      headerName: "Last Execution Time",
+      type: "dateTime",
+      valueGetter: ({ value }) => value && new Date(value)
+    },
     {
       field: "last-exec-status",
       headerName: "Last Execution Status",
-      width: 50,
+      type: "boolean"
     },
     {
       field: "actions",
       headerName: "Actions",
-      width: 300,
+      minWidth: 300,
       renderCell: (params) => (
         <>
           <Link to={`/execution/${params.row.id}`}>
@@ -189,17 +194,6 @@ export default function RecordsView() {
             />
           </Box>
           {selectionModel.length > 0 && (
-            // <>
-            //   <Button
-            //     startIcon={<VisibilityIcon />}
-            //     // Zobraziť graf pre vybrané recordIds v selectionModel
-            //     // Graf sa zobrazí ako modal dialog (https://mui.com/components/dialogs/#modal) alebo ako nová stránka
-            //     onClick={() => graphContainerRef.current.append(<></>)}
-            //   >
-            //     Visualise Selection
-            //   </Button>
-            //   <div ref={graphContainerRef} />
-            // </>
             <GraphVisualisationFromIds graphIds={selectionModel} />
           )}
         </Stack>
