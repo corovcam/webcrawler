@@ -66,7 +66,7 @@ export default class WebsiteRecord {
       label: this.label,
       is_active: this.isActive,
       is_being_crawled: this.isBeingCrawled,
-      tags: JSON.stringify(this.tags),
+      tags: this.tags,
       crawled_data: JSON.stringify(this.crawledData),
       request_do_crawl: this.requestDoCrawl,
     };

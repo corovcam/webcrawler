@@ -4,7 +4,7 @@ import { Button, Stack, Box, CssBaseline } from '@mui/material';
 import Wizard from "./pages/wizard"
 import RecordsView from "./pages/records-view"
 import ExecutionView from "./pages/execution-view"
-import { BaseUrlContext } from "./base-url-context";
+import { BaseUrlContext } from "./utils/base-url-context";
 
 const baseUrl = "http://localhost:3001";
 

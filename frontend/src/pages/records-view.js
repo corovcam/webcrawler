@@ -10,7 +10,7 @@ import {
 } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import { GraphVisualisationFromIds } from "../graph-visualisation.js";
+import { GraphVisualisationFromIds } from "../components/graph-visualisation.js";
 
 function EditToolbar() {
   return (
@@ -45,8 +45,8 @@ export default function RecordsView() {
               "last-exec-time": lastExecution?.end_time ?? "",
               "last-exec-status":
                 lastExecution?.status === 0 ? "completed" : "crawling",
-              "is_active": record.is_active === 0 ? false : true,
-              "tags": JSON.parse(record.tags),
+              is_active: record.is_active === 0 ? false : true,
+              tags: record.tags,
             };
           })
         );

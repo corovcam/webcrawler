@@ -26,6 +26,10 @@ export default class Wizard extends React.Component {
 
   componentDidMount() {
     const { recordId } = this.props;
+    const { url } = Object.fromEntries(new URLSearchParams(window.location.search));
+    this.setState({
+      url: url,
+    })
 
     if (recordId?.recordId) {
       fetch(`http://127.0.0.1:3001/website-record/${recordId.recordId}`)
@@ -46,7 +50,7 @@ export default class Wizard extends React.Component {
             periodicity: websiteRecord.periodicity,
             label: websiteRecord.label,
             is_active: websiteRecord.is_active === 1 ? true : false,
-            tags: JSON.parse(websiteRecord.tags),
+            tags: websiteRecord.tags,
           });
         })
         .catch(error => {

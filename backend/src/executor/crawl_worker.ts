@@ -31,8 +31,8 @@ export default class CrawlWorker {
     const node = new WebNode();
     node.url = url;
 
-    if (response == null) {
-      node.title = `[ERROR ${response.status} - ${response.statusText}]`;
+    if (!response || response.status !== 200) {
+      node.title = response ? `[ERROR ${response?.status} - ${response?.statusText}]` : "[ERROR]";
       node.crawlTime = 0;
       node.links = [];
       if (this.nodes.every((item) => item.url !== node.url)) {
@@ -95,9 +95,10 @@ export default class CrawlWorker {
         return err.response;
       });
 
-    if (!response || response.status !== 200) {
+    if (!response) {
+      console.log(`Error fetching data from ${url}`);
+    } else if (response.status !== 200) {
       console.log(`Error fetching data from ${url} [${response.status} - ${response.statusText}]`);
-      return;
     }
 
     return response;
