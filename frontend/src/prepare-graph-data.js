@@ -21,23 +21,43 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
     
     let newNodes = [];
     let newLinks = [];
+
+    const chechAndAddNewNodeToNodeList = (inputNode) => {
+        const sameNode = newNodes.find((node) => node.url === inputNode.url);
+        if(!sameNode){
+            newNodes.push({
+                ...inputNode,
+                'listNodesCrawledThisNode': [inputNode.recordId],
+                'recordIdList': [inputNode.recordId]
+            });
+        }
+        else{
+            if(!sameNode.recordIdList.find((id) => id === inputNode.recordId)){
+                newNodes = newNodes.map((node) => {
+                    if(node.url === inputNode.url){
+                        return({
+                            ...node,
+                            'recordIdList': [
+                                ...node.recordIdList,
+                                inputNode.recordId
+                            ]
+                        });
+                    }
+                    return(node);
+                })
+            }
+        }
+    };
+
+
     
     graphData.map((data) => {
         
-        if(newNodes.every((node) => node.url !== data.node.url)){
-            newNodes.push({
-                ...data.node,
-                'listNodesCrawledThisNode': []
-            });
-        }
+        chechAndAddNewNodeToNodeList(data.node);
 
         data.links.map((link) => {
-            if(newNodes.every((node) => node.url !== link.url)){
-                newNodes.push({
-                    ...link,
-                    'listNodesCrawledThisNode': []
-                });
-            }
+            
+            chechAndAddNewNodeToNodeList(link);
 
             newLinks.push({
                 'source': data.node.url,
@@ -47,7 +67,7 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
     });
     
     
-    let newNodesWithCrawledList = [];
+    
 
     newLinks.map((link) => {
         const nodeSource = newNodes.find((node) => node.url === link.source);
@@ -56,19 +76,18 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
         if(nodeSource && nodeTarget){
             newNodes = newNodes.map((node) => {
                 if(nodeTarget.url === node.url){
-                    if(!node.listNodesCrawledThisNode.find((r) => r.recordId === nodeSource.recordId)){
-                        return ({
-                            ...node,
-                            "listNodesCrawledThisNode": [
-                                ...node.listNodesCrawledThisNode,
-                                {
-                                    "recordId": nodeSource.recordId,
-                                    "title": nodeSource.title
-                                }
-                            ] 
-                        });
-                    }
+                    let tempListNodesCrawledThisNode = node.listNodesCrawledThisNode;
                     
+                    nodeSource.recordIdList.map((id) => {
+                        if(!tempListNodesCrawledThisNode.find((r) => r === id)){
+                            tempListNodesCrawledThisNode.push(id);
+                        }
+                    })
+
+                    return ({
+                        ...node,
+                        "listNodesCrawledThisNode": tempListNodesCrawledThisNode                            
+                    });
                 }
                 return node;
                 
@@ -82,7 +101,7 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
         'nodes': newNodes,
         'links': newLinks
     };
-    
+    console.log(myGraph);
     return myGraph;
 };
 
@@ -100,30 +119,48 @@ const getPreparedGraphDomainView = ({graphData}) => {
         
     }
 
-    
-
     let newNodes = [];
     let newLinks = [];
 
 
+    const chechAndAddNewDomainNodeToNodeList = (inputNode, inputDomain) => {
+        const sameDomainNode = newNodes.find((node) => (node.domain === inputDomain));
+        if(!sameDomainNode)
+        {
+            newNodes.push({
+                ...inputNode,
+                'domain': inputDomain,
+                'listRecordsCrawledThisDomain': [inputNode.recordId],
+            });
+        }
+        else{
+            if(!sameDomainNode.listRecordsCrawledThisDomain.find((id) => id === inputNode.recordId)){
+                newNodes = newNodes.map((node) => {
+                    if(node.domain === inputDomain){
+                        return({
+                            ...node,
+                            'listRecordsCrawledThisDomain': [
+                                ...node.listRecordsCrawledThisDomain,
+                                inputNode.recordId
+                            ]
+                        });
+                    }
+                    return(node);
+                })
+            }
+        }
+    };
+
     
     graphData.map(data => {
         const nodeDomain = getDomain({url:data.node.url});
-        if(newNodes.every(node => node.domain !== nodeDomain)){
-            newNodes.push({
-                ...data.node,
-                'domain': nodeDomain
-            });
-        }
+
+        chechAndAddNewDomainNodeToNodeList(data.node, nodeDomain);
 
         data.links.map(link => {
             const linkNodeDomain = getDomain({url: link.url});
-            if(newNodes.every(node => node.domain !== linkNodeDomain)){
-                newNodes.push({
-                    ...link,
-                    'domain': linkNodeDomain
-                });
-            }
+            
+            chechAndAddNewDomainNodeToNodeList(link, linkNodeDomain);
 
             newLinks.push({
                 'source': nodeDomain,

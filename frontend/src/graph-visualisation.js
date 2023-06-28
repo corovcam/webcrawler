@@ -202,6 +202,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
         if(containerForGraphRef.current !== null){
             setWidth(containerForGraphRef.current.offsetWidth - 80);
         }
+        setClickedgraphNode(null);
     }, []);
     
     const getNodeColor = (node) => {
@@ -358,7 +359,7 @@ function ShowSelectedNodeFromGraph({node}){
                 
                 <div style={{marginBottom:25}}>
                 <span style={{fontSize: 20  }}>Selected node from graph</span>
-                    {(node!==null && !node.passedBoundary) ? 
+                    {(node!==null && !node.passedBoundary && !node['domain']) ? 
                         <>
                             <span style={{float: "right"}}>
                                 <Button 
@@ -402,7 +403,7 @@ function ShowSelectedNodeFromGraph({node}){
                             </>
                             :
                             <>
-                            Record ID:  <span style={{float: "right"}}>{node.recordId}</span>
+                            Record ID:  <span style={{float: "right"}}>{node.listRecordsCrawledThisDomain.join(', ')}</span>
                             </>                         
                         }
                         
@@ -423,16 +424,16 @@ function ListRecordsCrawledThisNode({node}){
     
     const listItems = node.listNodesCrawledThisNode.map((i) => {
         return(
-            <ListItem key={i.recordId}>
+            <ListItem key={i}>
                 <ListItemText
-                    id={i.recordId}
-                    primary={`Record ID: ${i.recordId}`}
+                    id={i}
+                    primary={`Record ID: ${i}`}
                     
                 />
                 <Button
                             size="large"
                             variant="outlined"
-                            href={`/execution/${node.recordId}`}
+                            href={`/execution/${i}`}
                         >
                             SHOW EXECUTION VIEW
                         </Button>
