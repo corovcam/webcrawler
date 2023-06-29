@@ -99,7 +99,7 @@ const getPreparedGraphWebsiteView = ({graphData}) => {
         'nodes': newNodes,
         'links': newLinks
     };
-    console.log(myGraph);
+    
     return myGraph;
 };
 

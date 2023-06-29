@@ -192,8 +192,9 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
     const [websiteView, setWebsiteView] = React.useState(true);
     const [width, setWidth] = React.useState(800);
-    const [clickedgraphNode, setClickedgraphNode] = React.useState(null);
-    const backgroundClickFunction = () => setClickedgraphNode(null);
+    const [clickedgraphNodeUrl, setClickedgraphNodeUrl] = React.useState(null);
+    const preparedgraphdata = React.useRef();
+    const backgroundClickFunction = () => setClickedgraphNodeUrl(null);
     
     const idGraphNodes = websiteView ? 'url' : 'domain';
     const labelGraphNodes = websiteView ? 'title' : 'domain';
@@ -202,11 +203,11 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
         if(containerForGraphRef.current !== null){
             setWidth(containerForGraphRef.current.offsetWidth - 80);
         }
-        setClickedgraphNode(null);
-    }, []);
+        if(staticGraphConst) setClickedgraphNodeUrl(null);
+    }, [graph]);
     
     const getNodeColor = (node) => {
-        if(clickedgraphNode !== null && node.url === clickedgraphNode.url){
+        if(clickedgraphNodeUrl !== null && node.url === clickedgraphNodeUrl){
             return 'yellow';
         }
         else if (!node['domain']) {
@@ -222,14 +223,14 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
     const visualiseMyGraph = () => {
 
-        const preparedgraphdata = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
-
-        if(graph.length>0 && preparedgraphdata){                
+        preparedgraphdata.current = getPreparedDataForGraphVisualisation({graphData:graph, isRequestedWebsiteView:websiteView});
+        
+        if(graph.length>0 && preparedgraphdata.current){                
             
             return(
                 <ForceGraph2D 
                             
-                    graphData={preparedgraphdata} 
+                    graphData={preparedgraphdata.current} 
                     backgroundColor='snow'
                     width={width}
                     nodeId={idGraphNodes}                
@@ -251,7 +252,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
                     linkDirectionalArrowColor={() => "grey"}
                     linkDirectionalArrowRelPos={2}
 
-                    onNodeRightClick={(node) => setClickedgraphNode(node)}
+                    onNodeRightClick={(node) => setClickedgraphNodeUrl(node.url)}
                     onBackgroundClick={backgroundClickFunction}
                     onBackgroundRightClick={backgroundClickFunction}
 
@@ -330,7 +331,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
                 {visualiseMyGraph()}
 
-                <ShowSelectedNodeFromGraph node={clickedgraphNode}/>
+                <ShowSelectedNodeFromGraph nodeUrl={clickedgraphNodeUrl} graphData={preparedgraphdata.current}/>
 
             </Box>
         </>
@@ -342,7 +343,14 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
 
 
 
-function ShowSelectedNodeFromGraph({node}){
+function ShowSelectedNodeFromGraph({nodeUrl, graphData}){
+
+    let nodeFromGraph = null;
+
+    if(nodeUrl !== null && graphData.nodes){
+        nodeFromGraph = graphData.nodes.find((node) => node.url === nodeUrl);
+    }
+
     return(
         <>
             <Box sx={{
@@ -359,13 +367,13 @@ function ShowSelectedNodeFromGraph({node}){
                 
                 <div style={{marginBottom:25}}>
                 <span style={{fontSize: 20  }}>Selected node from graph</span>
-                    {(node!==null && !node.passedBoundary && !node['domain']) ? 
+                    {(nodeFromGraph !== null && !nodeFromGraph.passedBoundary && !nodeFromGraph['domain']) ? 
                         <>
                             <span style={{float: "right"}}>
                                 <Button 
                                     size="large" 
                                     variant="outlined"
-                                    href={`/wizard?url=${node.url}`}
+                                    href={`/wizard?url=${nodeFromGraph.url}`}
                                 >
                                     CREATE WEBSITE RECORD
                                 </Button>
@@ -379,31 +387,31 @@ function ShowSelectedNodeFromGraph({node}){
                     
                     
                 
-                {node!==null ? 
+                {nodeFromGraph !== null ? 
                     <>
-                        { !node['domain'] ?  
+                        { !nodeFromGraph['domain'] ?  
                             <>
-                            Title: <span style={{float: "right"}}>{node.title}</span>
+                            Title: <span style={{float: "right"}}>{nodeFromGraph.title}</span>
                             </>
                             :
                             <>
-                            Domain: <span style={{float: "right"}}>{node.domain}</span>
+                            Domain: <span style={{float: "right"}}>{nodeFromGraph.domain}</span>
                             </>
                         }
                         
                         <hr />
-                        URL: <span style={{float: "right"}}>{node.url}</span>
+                        URL: <span style={{float: "right"}}>{nodeFromGraph.url}</span>
                         <hr/>
-                        Crawl time: <span style={{float: "right"}}>{node.crawlTime}</span>
+                        Crawl time: <span style={{float: "right"}}>{nodeFromGraph.crawlTime}</span>
                         <hr/>
-                        { !node['domain'] ?
+                        { !nodeFromGraph['domain'] ?
                             <>
                             Records that crawled this node:
-                                <ListRecordsCrawledThisNode node={node}/>
+                                <ListRecordsCrawledThisNode node={nodeFromGraph}/>
                             </>
                             :
                             <>
-                            Record ID:  <span style={{float: "right"}}>{node.listRecordsCrawledThisDomain.join(', ')}</span>
+                            Record ID:  <span style={{float: "right"}}>{nodeFromGraph.listRecordsCrawledThisDomain.join(', ')}</span>
                             </>                         
                         }
                         
