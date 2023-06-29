@@ -6,7 +6,7 @@ import RecordsView from "./pages/records-view";
 import ExecutionView from "./pages/execution-view";
 import { BaseUrlContext } from "./utils/base-url-context";
 
-const baseUrl = "http://localhost:3001";
+const baseUrl = process.env.REACT_APP_BASE_URL || "http://localhost:3001";
 
 function App() {
   const [activeSelection, setActiveSelection] = React.useState([]);

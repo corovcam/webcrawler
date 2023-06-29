@@ -12,6 +12,7 @@ import {
 import { FormControl, FormControlLabel, FormLabel } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Navigate } from "react-router-dom";
+import { BaseUrlContext } from "../utils/base-url-context";
 
 export default class Wizard extends React.Component {
   constructor(props) {
@@ -33,6 +34,8 @@ export default class Wizard extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
+  static contextType = BaseUrlContext;
+
   componentDidMount() {
     const { recordId } = this.props;
     const { url } = Object.fromEntries(
@@ -43,7 +46,7 @@ export default class Wizard extends React.Component {
     });
 
     if (recordId?.recordId) {
-      fetch(`http://127.0.0.1:3001/website-record/${recordId.recordId}`)
+      fetch(`${this.context}/website-record/${recordId.recordId}`)
         .then((response) => {
           if (response.ok) {
             return response.json();
@@ -125,10 +128,10 @@ export default class Wizard extends React.Component {
       tags,
     };
 
-    let apiUrl = "http://127.0.0.1:3001/add-website-record";
+    let apiUrl = `${this.context}/add-website-record`;
 
     if (recordId?.recordId) {
-      apiUrl = `http://127.0.0.1:3001/update-website-record`;
+      apiUrl = `${this.context}/update-website-record`;
       data = { ...data, record_id: recordId.recordId };
     }
 

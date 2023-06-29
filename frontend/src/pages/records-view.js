@@ -10,6 +10,7 @@ import {
 } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import { BaseUrlContext } from "../utils/base-url-context";
 
 const GraphVisualisationFromIds = React.lazy(() =>
   import("../components/GraphVisualisationFromIds")
@@ -21,12 +22,14 @@ export default function RecordsView({
   staticGraph,
   setStaticGraph,
 }) {
+  const baseUrl = React.useContext(BaseUrlContext);
+
   const [pageSize, setPageSize] = useState(20);
   const [rows, setRows] = useState([]);
 
   const fetchWebsiteRecords = React.useCallback(async () => {
     try {
-      const response = await fetch("http://127.0.0.1:3001/website-records");
+      const response = await fetch(`${baseUrl}/website-records`);
       if (response.ok) {
         const data = await response.json();
         const rowsWithDataId = await Promise.all(
@@ -54,7 +57,7 @@ export default function RecordsView({
   const fetchLastExecution = async (recordId) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:3001/last-execution/website-record/${recordId}`
+        `${baseUrl}/last-execution/website-record/${recordId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -130,7 +133,7 @@ export default function RecordsView({
   ];
 
   const handleDelete = (recordId) => {
-    fetch(`http://127.0.0.1:3001/delete-website-record/${recordId}`, {
+    fetch(`${baseUrl}/delete-website-record/${recordId}`, {
       method: "DELETE",
     })
       .then((response) => response.text())
@@ -144,7 +147,7 @@ export default function RecordsView({
   };
 
   const handleCrawl = (recordId) => {
-    fetch(`http://127.0.0.1:3001/crawl-website-record/${recordId}`)
+    fetch(`${baseUrl}/crawl-website-record/${recordId}`)
       .then((response) => response.text())
       .then((data) => {
         console.log("Crawl Website Record:", data);
