@@ -1,24 +1,34 @@
 import * as React from "react";
-import { Routes, Route, useParams } from "react-router-dom";
-import { Button, Stack, Box, CssBaseline } from '@mui/material';
-import Wizard from "./pages/wizard"
-import RecordsView from "./pages/records-view"
-import ExecutionView from "./pages/execution-view"
+import { Routes, Route, useParams, Link } from "react-router-dom";
+import { Button, Stack, Box, CssBaseline } from "@mui/material";
+import Wizard from "./pages/wizard";
+import RecordsView from "./pages/records-view";
+import ExecutionView from "./pages/execution-view";
 import { BaseUrlContext } from "./utils/base-url-context";
 
 const baseUrl = "http://localhost:3001";
 
 function App() {
+  const [activeSelection, setActiveSelection] = React.useState([]);
+  const [staticGraph, setStaticGraph] = React.useState(true);
+
+  const appState = {
+    activeSelection,
+    setActiveSelection,
+    staticGraph,
+    setStaticGraph,
+  };
+
   return (
     <>
       <BaseUrlContext.Provider value={baseUrl}>
         <CssBaseline enableColorScheme />
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: "center" }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="wizard" element={<WizardPage />} />
-            <Route path="wizard/:recordId" element={<WizardPageId />}/>
-            <Route path="view" element={<ViewPage />} />
+            <Route path="wizard" element={<WizardPage appState={appState} />} />
+            <Route path="wizard/:recordId" element={<WizardPageId />} />
+            <Route path="view" element={<ViewPage appState={appState} />} />
             <Route path="execution/:recordId" element={<ExecutionPage />} />
           </Routes>
         </Box>
@@ -29,8 +39,15 @@ function App() {
 
 function HomePage() {
   return (
-    <Box sx={{ display: "flex", width: "100%", height: "100%", 
-      position: "absolute", justifyContent: "center", alignItems: "center" }}
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
     >
       <div>
         <main>
@@ -39,8 +56,12 @@ function HomePage() {
         </main>
         <nav>
           <Stack spacing={3} justifyContent="center" alignItems="center">
-            <Button variant="contained" href="/wizard">Wizard</Button>
-            <Button variant="contained" href="/view">View</Button>
+            <Link to="/wizard">
+              <Button variant="contained">Wizard</Button>
+            </Link>
+            <Link to="/view">
+              <Button variant="contained">View</Button>
+            </Link>
           </Stack>
         </nav>
       </div>
@@ -48,53 +69,97 @@ function HomePage() {
   );
 }
 
-function WizardPage() {
+function WizardPage({ appState }) {
+  const { activeSelection, setActiveSelection, setStaticGraph } = appState;
+
   return (
     <>
       <main>
         <h1>Website Record Wizard</h1>
-        <Wizard />
+        <Wizard
+          activeSelection={activeSelection}
+          setActiveSelection={setActiveSelection}
+          setStaticGraph={setStaticGraph}
+        />
       </main>
       <nav>
-        <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
-          <Button variant="contained" href="/">Home</Button>
-          <Button variant="contained" href="/view">View</Button>
+        <Stack
+          direction="row"
+          spacing={3}
+          m="1%"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Link to="/">
+            <Button variant="contained">Home</Button>
+          </Link>
+          <Link to="/view">
+            <Button variant="contained">View</Button>
+          </Link>
         </Stack>
       </nav>
     </>
   );
 }
 
-function WizardPageId(){
-  const recordId = useParams()
+function WizardPageId() {
+  const recordId = useParams();
   return (
     <>
       <main>
         <h1>Website Record Wizard</h1>
-        <Wizard recordId={recordId}/>
+        <Wizard recordId={recordId} />
       </main>
       <nav>
-        <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
-          <Button variant="contained" href="/">Home</Button>
-          <Button variant="contained" href="/view">View</Button>
+        <Stack
+          direction="row"
+          spacing={3}
+          m="1%"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Link to="/">
+            <Button variant="contained">Home</Button>
+          </Link>
+          <Link to="/view">
+            <Button variant="contained">View</Button>
+          </Link>
         </Stack>
       </nav>
     </>
   );
 }
 
-function ViewPage() {
+function ViewPage({ appState }) {
+  const { activeSelection, setActiveSelection, staticGraph, setStaticGraph } =
+    appState;
+
   return (
     <>
       <main>
         <h1>Website Records View</h1>
-        <RecordsView />
+        <RecordsView
+          activeSelection={activeSelection}
+          setActiveSelection={setActiveSelection}
+          staticGraph={staticGraph}
+          setStaticGraph={setStaticGraph}
+        />
       </main>
       <nav>
-      <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
-        <Button variant="contained" href="/">Home</Button>
-        <Button variant="contained" href="/wizard">Wizard</Button>
-      </Stack>
+        <Stack
+          direction="row"
+          spacing={3}
+          m="1%"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Link to="/">
+            <Button variant="contained">Home</Button>
+          </Link>
+          <Link to="/wizard">
+            <Button variant="contained">Wizard</Button>
+          </Link>
+        </Stack>
       </nav>
     </>
   );
@@ -109,11 +174,23 @@ function ExecutionPage() {
         <ExecutionView recordId={recordId} />
       </main>
       <nav>
-      <Stack direction="row" spacing={3} m="1%" justifyContent="center" alignItems="center">
-        <Button variant="contained" href="/">Home</Button>
-        <Button variant="contained" href="/wizard">Wizard</Button>
-        <Button variant="contained" href="/view">View</Button>
-      </Stack>
+        <Stack
+          direction="row"
+          spacing={3}
+          m="1%"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Link to="/">
+            <Button variant="contained">Home</Button>
+          </Link>
+          <Link to="/wizard">
+            <Button variant="contained">Wizard</Button>
+          </Link>
+          <Link to="/view">
+            <Button variant="contained">View</Button>
+          </Link>
+        </Stack>
       </nav>
     </>
   );

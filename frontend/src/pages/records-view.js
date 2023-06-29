@@ -12,23 +12,8 @@ import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { GraphVisualisationFromIds } from "../components/graph-visualisation.js";
 
-function EditToolbar() {
-  return (
-    <GridToolbarContainer>
-      <Button color="primary" startIcon={<AddIcon />} href="/wizard">
-        Add Website Record
-      </Button>
-      <GridToolbarColumnsButton />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
-
-export default function RecordsView() {
+export default function RecordsView({ activeSelection, setActiveSelection, staticGraph, setStaticGraph }) {
   const [pageSize, setPageSize] = useState(20);
-  const [selectionModel, setSelectionModel] = useState([]);
   const [rows, setRows] = useState([]);
 
   const fetchWebsiteRecords = React.useCallback(async () => {
@@ -185,19 +170,37 @@ export default function RecordsView() {
               rowsPerPageOptions={[20, 50, 100]}
               checkboxSelection
               onRowSelectionModelChange={(newSelectionModel) => {
-                setSelectionModel(newSelectionModel);
+                setActiveSelection(newSelectionModel);
               }}
-              rowSelectionModel={selectionModel}
+              rowSelectionModel={activeSelection}
+              keepNonExistentRowsSelected
               slots={{
                 toolbar: EditToolbar,
               }}
             />
           </Box>
-          {selectionModel.length > 0 && (
-            <GraphVisualisationFromIds graphIds={selectionModel} />
+
+          {activeSelection.length > 0 && (
+            <GraphVisualisationFromIds graphIds={activeSelection} staticGraph={staticGraph} setStaticGraph={setStaticGraph} />
           )}
         </Stack>
       </Box>
     </>
+  );
+}
+
+function EditToolbar() {
+  return (
+    <GridToolbarContainer>
+      <Link to={`/wizard`}>
+        <Button color="primary" startIcon={<AddIcon />}>
+          Add Website Record
+        </Button>
+      </Link>
+      <GridToolbarColumnsButton />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector />
+      <GridToolbarExport />
+    </GridToolbarContainer>
   );
 }

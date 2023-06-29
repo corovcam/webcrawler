@@ -139,13 +139,16 @@ export default class Wizard extends React.Component {
         }
       })
       .then(data => {
+        const { activeSelection, setActiveSelection, setStaticGraph } = this.props;
         if (recordId?.recordId) {
           // UPDATE returns a string
-          alert(data); 
+          alert(data);
         } else {
           // ADD returns JSON
           const { recordId, message } = data;
           alert(`Record saved successfully!\nRecord ID: ${recordId}\nMessage: ${message}`);
+          setActiveSelection([...activeSelection, recordId]);
+          setStaticGraph(false);
         }
         this.setState({
           submitted: true

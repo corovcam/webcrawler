@@ -6,16 +6,13 @@ import { getPreparedDataForGraphVisualisation } from "../utils/prepare-graph-dat
 import { useContext } from "react";
 import { BaseUrlContext } from "../utils/base-url-context";
 import { List, ListItem, ListItemText } from "@mui/material";
+import { Link } from "react-router-dom";
 
-
-
-export function GraphVisualisationFromIds({graphIds}){
-    const [graphData, setGraphData] = React.useState([]);    
-    const [staticGraph, setStaticGraph] = React.useState(true);
+export function GraphVisualisationFromIds({staticGraph, setStaticGraph, graphIds}){
+    const [graphData, setGraphData] = React.useState([]);
     const [lastExecutionForIds, setLastExecutionForIds] = React.useState([]);
     const baseUrl = useContext(BaseUrlContext);
     const intervalRef = React.useRef();
-   
 
     const checkLastExecution = React.useCallback(() => {
         if(!staticGraph) {
@@ -198,7 +195,7 @@ export function GraphVisualisation({graph, staticGraphConst, changeStaticGraph})
     const idGraphNodes = websiteView ? 'url' : 'domain';
     const labelGraphNodes = websiteView ? 'title' : 'domain';
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         if(containerForGraphRef.current !== null){
             setWidth(containerForGraphRef.current.offsetWidth - 80);
         }
@@ -362,13 +359,14 @@ function ShowSelectedNodeFromGraph({node}){
                     {(node!==null && !node.passedBoundary && !node['domain']) ? 
                         <>
                             <span style={{float: "right"}}>
-                                <Button 
-                                    size="large" 
-                                    variant="outlined"
-                                    href={`/wizard?url=${node.url}`}
-                                >
-                                    CREATE WEBSITE RECORD
-                                </Button>
+                                <Link to={`/wizard?url=${node.url}`}>
+                                    <Button 
+                                        size="large" 
+                                        variant="outlined"
+                                    >
+                                        CREATE WEBSITE RECORD
+                                    </Button>
+                                </Link>
                             </span>
                         </>
                         :
