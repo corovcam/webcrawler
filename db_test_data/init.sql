@@ -12,8 +12,7 @@ create table IF NOT EXISTS website_records (
 );
 
 INSERT INTO `website_records` VALUES 
-(1, 'https://www.zelezarstvizizkov.cz/', '/w{3}\.zelezarstvizizkov\.cz/', 1, 'Zelezarstvi ZIZKOV', 1, 0, JSON_ARRAY('Zelezarstvi', 'Kul'), null, 0), 
-(2, 'https://www.zelezarstvizizkov.cz/', '/w{3}\.zelezarstvizizkov\.cz/', 2, 'Zelezarstvi ZIZKOV2', 1, 0, JSON_ARRAY('Zelezarstvi', 'Kuuul'), null, 0);
+(1, 'https://www.ultranative.com/', '/w{3}\.ultranative\.com/', 1, 'Ultranative', 1, 0, JSON_ARRAY('Ultra', 'Native'), null, 0), 
 
 
 create table IF NOT EXISTS executions (
