@@ -10,25 +10,18 @@ import {
 } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import { GraphVisualisationFromIds } from "../components/graph-visualisation.js";
 
-function EditToolbar() {
-  return (
-    <GridToolbarContainer>
-      <Button color="primary" startIcon={<AddIcon />} href="/wizard">
-        Add Website Record
-      </Button>
-      <GridToolbarColumnsButton />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
+const GraphVisualisationFromIds = React.lazy(() =>
+  import("../components/GraphVisualisationFromIds")
+);
 
-export default function RecordsView() {
+export default function RecordsView({
+  activeSelection,
+  setActiveSelection,
+  staticGraph,
+  setStaticGraph,
+}) {
   const [pageSize, setPageSize] = useState(20);
-  const [selectionModel, setSelectionModel] = useState([]);
   const [rows, setRows] = useState([]);
 
   const fetchWebsiteRecords = React.useCallback(async () => {
@@ -43,8 +36,7 @@ export default function RecordsView() {
               ...record,
               id: record.record_id,
               "last-exec-time": lastExecution?.end_time ?? "",
-              "last-exec-status":
-                record?.is_being_crawled === 0 ? true : false,
+              "last-exec-status": record?.is_being_crawled === 0 ? true : false,
               is_active: record.is_active === 0 ? false : true,
               tags: record.tags,
             };
@@ -93,12 +85,12 @@ export default function RecordsView() {
       field: "last-exec-time",
       headerName: "Last Execution Time",
       type: "dateTime",
-      valueGetter: ({ value }) => value && new Date(value)
+      valueGetter: ({ value }) => value && new Date(value),
     },
     {
       field: "last-exec-status",
       headerName: "Last Execution Status",
-      type: "boolean"
+      type: "boolean",
     },
     {
       field: "actions",
@@ -185,19 +177,42 @@ export default function RecordsView() {
               rowsPerPageOptions={[20, 50, 100]}
               checkboxSelection
               onRowSelectionModelChange={(newSelectionModel) => {
-                setSelectionModel(newSelectionModel);
+                setActiveSelection(newSelectionModel);
               }}
-              rowSelectionModel={selectionModel}
+              rowSelectionModel={activeSelection}
+              keepNonExistentRowsSelected
               slots={{
                 toolbar: EditToolbar,
               }}
             />
           </Box>
-          {selectionModel.length > 0 && (
-            <GraphVisualisationFromIds graphIds={selectionModel} />
+          {activeSelection.length > 0 && (
+            <React.Suspense fallback="LOADING...">
+              <GraphVisualisationFromIds
+                graphIds={activeSelection}
+                staticGraph={staticGraph}
+                setStaticGraph={setStaticGraph}
+              />
+            </React.Suspense>
           )}
         </Stack>
       </Box>
     </>
+  );
+}
+
+function EditToolbar() {
+  return (
+    <GridToolbarContainer>
+      <Link to={`/wizard`}>
+        <Button color="primary" startIcon={<AddIcon />}>
+          Add Website Record
+        </Button>
+      </Link>
+      <GridToolbarColumnsButton />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector />
+      <GridToolbarExport />
+    </GridToolbarContainer>
   );
 }
