@@ -40,7 +40,7 @@ const resolvers = {
             label: record.label,
             url: record.url,
             regexp: record.boundary_regexp,
-            tags: JSON.parse(record.tags),
+            tags: record.tags,
             active: record.is_active,
           };
         });
@@ -62,7 +62,7 @@ const resolvers = {
             label: record.label,
             url: record.url,
             regexp: record.boundary_regexp,
-            tags: JSON.parse(record.tags),
+            tags: record.tags,
             active: record.is_active,
           };
 
