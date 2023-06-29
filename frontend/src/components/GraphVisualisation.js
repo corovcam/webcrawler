@@ -62,7 +62,7 @@ export default function GraphVisualisation({
               linkDirectionalArrowLength={7}
               linkDirectionalArrowColor={() => "grey"}
               linkDirectionalArrowRelPos={2}
-              onNodeRightClick={(node) => setClickedgraphNodeUrl(node)}
+              onNodeRightClick={(node) => setClickedgraphNodeUrl(node.url)}
               onBackgroundClick={backgroundClickFunction}
               onBackgroundRightClick={backgroundClickFunction}
               onNodeDragEnd={(node) => {
