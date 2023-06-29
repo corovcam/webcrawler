@@ -10,25 +10,18 @@ import {
 } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import { GraphVisualisationFromIds } from "../graph-visualisation.js";
 
-function EditToolbar() {
-  return (
-    <GridToolbarContainer>
-      <Button color="primary" startIcon={<AddIcon />} href="/wizard">
-        Add Website Record
-      </Button>
-      <GridToolbarColumnsButton />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
-    </GridToolbarContainer>
-  );
-}
+const GraphVisualisationFromIds = React.lazy(() =>
+  import("../components/GraphVisualisationFromIds")
+);
 
-export default function RecordsView() {
+export default function RecordsView({
+  activeSelection,
+  setActiveSelection,
+  staticGraph,
+  setStaticGraph,
+}) {
   const [pageSize, setPageSize] = useState(20);
-  const [selectionModel, setSelectionModel] = useState([]);
   const [rows, setRows] = useState([]);
 
   const fetchWebsiteRecords = React.useCallback(async () => {
@@ -43,10 +36,9 @@ export default function RecordsView() {
               ...record,
               id: record.record_id,
               "last-exec-time": lastExecution?.end_time ?? "",
-              "last-exec-status":
-                lastExecution?.status === 0 ? "completed" : "crawling",
-              "is_active": record.is_active === 0 ? false : true,
-              "tags": JSON.parse(record.tags),
+              "last-exec-status": record?.is_being_crawled === 0 ? true : false,
+              is_active: record.is_active === 0 ? false : true,
+              tags: record.tags,
             };
           })
         );
@@ -85,20 +77,25 @@ export default function RecordsView() {
     { field: "record_id", headerName: "ID", minWidth: 5 },
     { field: "url", headerName: "URL", minWidth: 150 },
     { field: "boundary_regexp", headerName: "Boundary RegExp", minWidth: 100 },
-    { field: "periodicity", headerName: "Periodicity", width: 100 },
+    { field: "periodicity", headerName: "Periodicity", type: "number" },
     { field: "label", headerName: "Label", minWidth: 50 },
-    { field: "is_active", headerName: "Active?", minWidth: 50 },
+    { field: "is_active", headerName: "Active?", type: "boolean" },
     { field: "tags", headerName: "Tags", minWidth: 150 },
-    { field: "last-exec-time", headerName: "Last Execution Time", width: 100 },
+    {
+      field: "last-exec-time",
+      headerName: "Last Execution Time",
+      type: "dateTime",
+      valueGetter: ({ value }) => value && new Date(value),
+    },
     {
       field: "last-exec-status",
       headerName: "Last Execution Status",
-      width: 50,
+      type: "boolean",
     },
     {
       field: "actions",
       headerName: "Actions",
-      width: 300,
+      minWidth: 300,
       renderCell: (params) => (
         <>
           <Link to={`/execution/${params.row.id}`}>
@@ -180,30 +177,42 @@ export default function RecordsView() {
               rowsPerPageOptions={[20, 50, 100]}
               checkboxSelection
               onRowSelectionModelChange={(newSelectionModel) => {
-                setSelectionModel(newSelectionModel);
+                setActiveSelection(newSelectionModel);
               }}
-              rowSelectionModel={selectionModel}
+              rowSelectionModel={activeSelection}
+              keepNonExistentRowsSelected
               slots={{
                 toolbar: EditToolbar,
               }}
             />
           </Box>
-          {selectionModel.length > 0 && (
-            // <>
-            //   <Button
-            //     startIcon={<VisibilityIcon />}
-            //     // Zobraziť graf pre vybrané recordIds v selectionModel
-            //     // Graf sa zobrazí ako modal dialog (https://mui.com/components/dialogs/#modal) alebo ako nová stránka
-            //     onClick={() => graphContainerRef.current.append(<></>)}
-            //   >
-            //     Visualise Selection
-            //   </Button>
-            //   <div ref={graphContainerRef} />
-            // </>
-            <GraphVisualisationFromIds graphIds={selectionModel} />
+          {activeSelection.length > 0 && (
+            <React.Suspense fallback="LOADING...">
+              <GraphVisualisationFromIds
+                graphIds={activeSelection}
+                staticGraph={staticGraph}
+                setStaticGraph={setStaticGraph}
+              />
+            </React.Suspense>
           )}
         </Stack>
       </Box>
     </>
+  );
+}
+
+function EditToolbar() {
+  return (
+    <GridToolbarContainer>
+      <Link to={`/wizard`}>
+        <Button color="primary" startIcon={<AddIcon />}>
+          Add Website Record
+        </Button>
+      </Link>
+      <GridToolbarColumnsButton />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector />
+      <GridToolbarExport />
+    </GridToolbarContainer>
   );
 }

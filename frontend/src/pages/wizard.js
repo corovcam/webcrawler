@@ -1,8 +1,17 @@
-import * as React from 'react';
-import { Stack, TextField, Button, Switch, Box, IconButton, Tooltip, InputAdornment } from '@mui/material';
-import { FormControl, FormControlLabel, FormLabel } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { Navigate } from 'react-router-dom';
+import * as React from "react";
+import {
+  Stack,
+  TextField,
+  Button,
+  Switch,
+  Box,
+  IconButton,
+  Tooltip,
+  InputAdornment,
+} from "@mui/material";
+import { FormControl, FormControlLabel, FormLabel } from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { Navigate } from "react-router-dom";
 
 export default class Wizard extends React.Component {
   constructor(props) {
@@ -26,19 +35,25 @@ export default class Wizard extends React.Component {
 
   componentDidMount() {
     const { recordId } = this.props;
+    const { url } = Object.fromEntries(
+      new URLSearchParams(window.location.search)
+    );
+    this.setState({
+      url: url,
+    });
 
     if (recordId?.recordId) {
       fetch(`http://127.0.0.1:3001/website-record/${recordId.recordId}`)
-        .then(response => {
+        .then((response) => {
           if (response.ok) {
             return response.json();
           } else if (response.status === 404) {
-            throw new Error('Record not found');
+            throw new Error("Record not found");
           } else {
-            throw new Error('Error fetching record');
+            throw new Error("Error fetching record");
           }
         })
-        .then(json => {
+        .then((json) => {
           const { websiteRecord } = json;
           this.setState({
             url: websiteRecord.url,
@@ -46,12 +61,12 @@ export default class Wizard extends React.Component {
             periodicity: websiteRecord.periodicity,
             label: websiteRecord.label,
             is_active: websiteRecord.is_active === 1 ? true : false,
-            tags: JSON.parse(websiteRecord.tags),
+            tags: websiteRecord.tags,
           });
         })
-        .catch(error => {
+        .catch((error) => {
           console.error(error);
-          alert('An error occurred while fetching the record.');
+          alert("An error occurred while fetching the record.");
         });
     }
   }
@@ -62,20 +77,20 @@ export default class Wizard extends React.Component {
     const name = target.name;
 
     this.setState({
-      [name]: value
+      [name]: value,
     });
   }
 
   handleCheckedInputChange(event) {
     this.setState({
-      [event.target.name]: event.target.checked
+      [event.target.name]: event.target.checked,
     });
   }
 
   handleTagsInput(event) {
-    const tags = event.target.value.split(',');
+    const tags = event.target.value.split(",");
     this.setState({
-      [event.target.name]: tags
+      [event.target.name]: tags,
     });
   }
 
@@ -85,11 +100,11 @@ export default class Wizard extends React.Component {
 
     if (parsedValue >= 0) {
       this.setState({
-        periodicity: parsedValue
+        periodicity: parsedValue,
       });
     } else {
       this.setState({
-        periodicity: 0
+        periodicity: 0,
       });
     }
   }
@@ -98,7 +113,8 @@ export default class Wizard extends React.Component {
     event.preventDefault();
 
     const { recordId } = this.props;
-    const { url, boundary_regexp, periodicity, label, is_active, tags } = this.state;
+    const { url, boundary_regexp, periodicity, label, is_active, tags } =
+      this.state;
 
     let data = {
       url,
@@ -106,160 +122,217 @@ export default class Wizard extends React.Component {
       periodicity,
       label,
       is_active,
-      tags
+      tags,
     };
 
-    let apiUrl = 'http://127.0.0.1:3001/add-website-record';
+    let apiUrl = "http://127.0.0.1:3001/add-website-record";
 
     if (recordId?.recordId) {
       apiUrl = `http://127.0.0.1:3001/update-website-record`;
-      data = {...data, record_id: recordId.recordId}
+      data = { ...data, record_id: recordId.recordId };
     }
 
     fetch(apiUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     })
-      .then(response => {
+      .then((response) => {
         if (response.ok) {
           return recordId?.recordId ? response.text() : response.json();
         } else if (response.status === 404) {
-          throw new Error('Record not found');
+          throw new Error("Record not found");
         } else if (response.status === 500) {
-          throw new Error('Internal server error');
+          throw new Error("Internal server error");
         } else {
-          throw new Error('Error saving record');
+          throw new Error("Error saving record");
         }
       })
-      .then(data => {
+      .then((data) => {
+        const { activeSelection, setActiveSelection, setStaticGraph } =
+          this.props;
         if (recordId?.recordId) {
           // UPDATE returns a string
-          alert(data); 
+          alert(data);
         } else {
           // ADD returns JSON
           const { recordId, message } = data;
-          alert(`Record saved successfully!\nRecord ID: ${recordId}\nMessage: ${message}`);
+          alert(
+            `Record saved successfully!\nRecord ID: ${recordId}\nMessage: ${message}`
+          );
+          setActiveSelection([...activeSelection, recordId]);
+          setStaticGraph(false);
         }
         this.setState({
-          submitted: true
+          submitted: true,
         });
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
-        alert('An error occurred while saving the record.');
+        alert("An error occurred while saving the record.");
       });
   }
 
   render() {
     const { recordId } = this.props;
-    const { url, boundary_regexp, periodicity, label, is_active, tags, submitted } = this.state;
+    const {
+      url,
+      boundary_regexp,
+      periodicity,
+      label,
+      is_active,
+      tags,
+      submitted,
+    } = this.state;
 
     return (
       <>
-      {submitted && (<Navigate to="/view" replace={true} />)}
-      <Box sx={{ width: "50%", margin: "auto auto", padding: "1%", border: "2px solid black", borderRadius: '16px' }}>
-        <Stack component="form" onSubmit={(event) => this.handleSubmit(event)} spacing={3} justifyContent="center" alignItems="center">
-          {/* URL */}
-          <FormControl fullWidth>
-            <FormLabel id="url-label">URL</FormLabel>
-            <TextField
-              name="url"
-              label="URL"
-              aria-labelledby="url-label"
-              size="small"
-              value={url}
-              onChange={this.handleInputChange}
-              required
-              InputProps={{
-                endAdornment: <HelpTooltip title="Specify where the crawler should start" adorned />
-              }}
-            />
-          </FormControl>
-          {/* Boundary RegExp */}
-          <FormControl>
-            <FormLabel id="boundary-regexp-label">Boundary RegExp</FormLabel>
-            <TextField
-              name="boundary_regexp"
-              label="Boundary RegExp"
-              aria-labelledby="boundary-regexp-label"
-              size="small"
-              value={boundary_regexp}
-              onChange={this.handleInputChange}
-              required
-              InputProps={{
-                endAdornment:
-                  <HelpTooltip
-                    title="When the crawler found a link, the link must match this expression in order to be followed"
-                    adorned
+        {submitted && <Navigate to="/view" replace={true} />}
+        <Box
+          sx={{
+            width: "50%",
+            margin: "auto auto",
+            padding: "1%",
+            border: "2px solid black",
+            borderRadius: "16px",
+          }}
+        >
+          <Stack
+            component="form"
+            onSubmit={(event) => this.handleSubmit(event)}
+            spacing={3}
+            justifyContent="center"
+            alignItems="center"
+          >
+            {/* URL */}
+            <FormControl fullWidth>
+              <FormLabel id="url-label">URL</FormLabel>
+              <TextField
+                name="url"
+                label="URL"
+                aria-labelledby="url-label"
+                size="small"
+                value={url}
+                onChange={this.handleInputChange}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <HelpTooltip
+                      title="Specify where the crawler should start"
+                      adorned
+                    />
+                  ),
+                }}
+              />
+            </FormControl>
+            {/* Boundary RegExp */}
+            <FormControl>
+              <FormLabel id="boundary-regexp-label">Boundary RegExp</FormLabel>
+              <TextField
+                name="boundary_regexp"
+                label="Boundary RegExp"
+                aria-labelledby="boundary-regexp-label"
+                size="small"
+                value={boundary_regexp}
+                onChange={this.handleInputChange}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <HelpTooltip
+                      title="When the crawler found a link, the link must match this expression in order to be followed"
+                      adorned
+                    />
+                  ),
+                }}
+              />
+            </FormControl>
+            {/* Periodicity Input */}
+            <FormControl>
+              <FormLabel id="periodicity-label">
+                Periodicity (minutes)
+              </FormLabel>
+              <TextField
+                name="periodicity"
+                label="Periodicity"
+                aria-labelledby="periodicity-label"
+                size="small"
+                value={periodicity}
+                onChange={this.handlePeriodicityChange}
+                type="number"
+                InputProps={{
+                  endAdornment: (
+                    <HelpTooltip
+                      title="How often should the site be crawled (in minutes)"
+                      adorned
+                    />
+                  ),
+                }}
+              />
+            </FormControl>
+            {/* Label Input */}
+            <FormControl>
+              <FormLabel id="label-inp">Label</FormLabel>
+              <TextField
+                name="label"
+                label="Label"
+                aria-labelledby="label-inp"
+                size="small"
+                value={label}
+                onChange={this.handleInputChange}
+                InputProps={{
+                  endAdornment: (
+                    <HelpTooltip title="User given label" adorned />
+                  ),
+                }}
+              />
+            </FormControl>
+            {/* Active/Inactive Switch */}
+            <FormControl
+              sx={{ justifyContent: "center", alignItems: "center" }}
+            >
+              <FormLabel id="active-label">Active / Inactive</FormLabel>
+              <FormControlLabel
+                aria-labelledby="active-label"
+                name="is_active"
+                size="small"
+                label={
+                  <HelpTooltip title="If inactive, the site is not crawled based on the Periodicity" />
+                }
+                control={
+                  <Switch
+                    checked={is_active}
+                    onChange={this.handleCheckedInputChange}
                   />
-              }}
-            />
-          </FormControl>
-          {/* Periodicity Input */}
-          <FormControl>
-            <FormLabel id="periodicity-label">Periodicity (minutes)</FormLabel>
-            <TextField
-              name="periodicity"
-              label="Periodicity"
-              aria-labelledby="periodicity-label"
-              size="small"
-              value={periodicity}
-              onChange={this.handlePeriodicityChange}
-              type="number"
-              InputProps={{
-                endAdornment: <HelpTooltip title="How often should the site be crawled (in minutes)" adorned />
-              }}
-            />
-          </FormControl>
-          {/* Label Input */}
-          <FormControl>
-            <FormLabel id="label-inp">Label</FormLabel>
-            <TextField
-              name="label"
-              label="Label"
-              aria-labelledby="label-inp"
-              size="small"
-              value={label}
-              onChange={this.handleInputChange}
-              InputProps={{
-                endAdornment: <HelpTooltip title="User given label" adorned />
-              }}
-            />
-          </FormControl>
-          {/* Active/Inactive Switch */}
-          <FormControl sx={{ justifyContent: "center", alignItems: "center" }}>
-            <FormLabel id="active-label">
-              Active / Inactive
-            </FormLabel>
-            <FormControlLabel
-              aria-labelledby="active-label"
-              name="is_active"
-              size="small"
-              label={<HelpTooltip title="If inactive, the site is not crawled based on the Periodicity" />}
-              control={<Switch checked={is_active} onChange={this.handleCheckedInputChange} />}
-            />
-          </FormControl>
-          {/* Tags Input */}
-          <FormControl>
-            <FormLabel id="tags-label">Tags (comma separated)</FormLabel>
-            <TextField
-              name="tags"
-              label="Tags"
-              aria-labelledby="tags-label"
-              size="small"
-              value={tags.join(',')}
-              onChange={this.handleTagsInput}
-              InputProps={{
-                endAdornment: <HelpTooltip title="User given tags, comma-separated without additional spaces" adorned />
-              }}
-            />
-          </FormControl>
-          <Button variant="outlined" type="submit">{recordId ? 'Update' : 'Submit'}</Button>
-        </Stack>
-      </Box>
+                }
+              />
+            </FormControl>
+            {/* Tags Input */}
+            <FormControl>
+              <FormLabel id="tags-label">Tags (comma separated)</FormLabel>
+              <TextField
+                name="tags"
+                label="Tags"
+                aria-labelledby="tags-label"
+                size="small"
+                value={tags.join(",")}
+                onChange={this.handleTagsInput}
+                InputProps={{
+                  endAdornment: (
+                    <HelpTooltip
+                      title="User given tags, comma-separated without additional spaces"
+                      adorned
+                    />
+                  ),
+                }}
+              />
+            </FormControl>
+            <Button variant="outlined" type="submit">
+              {recordId ? "Update" : "Submit"}
+            </Button>
+          </Stack>
+        </Box>
       </>
     );
   }
@@ -277,13 +350,8 @@ function HelpTooltip(props) {
   };
 
   if (props.adorned) {
-    return (
-      <InputAdornment position="end">
-        {IconTooltip()}
-      </InputAdornment>
-    );
-  }
-  else {
+    return <InputAdornment position="end">{IconTooltip()}</InputAdornment>;
+  } else {
     return IconTooltip();
   }
 }
