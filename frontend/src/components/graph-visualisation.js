@@ -174,7 +174,7 @@ export function GraphVisualisationFromIds({graphIds}){
             ignore = true;
         }
 
-    }, [graphIds, baseUrl]);
+    }, [graphIds, baseUrl, lastExecutionForIds]);
     
     
 
