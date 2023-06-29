@@ -5,7 +5,11 @@ import GraphVisualisationFromIds from "../components/GraphVisualisationFromIds";
 import { BaseUrlContext } from "../utils/base-url-context";
 import { DataGrid } from "@mui/x-data-grid";
 
-export default function ExecutionView({ recordId, staticGraph, setStaticGraph }) {
+export default function ExecutionView({
+  recordId,
+  staticGraph,
+  setStaticGraph,
+}) {
   const baseUrl = useContext(BaseUrlContext);
 
   const [requestedRecord, setRequestedRecord] = React.useState(null);
@@ -60,7 +64,11 @@ export default function ExecutionView({ recordId, staticGraph, setStaticGraph })
           record={requestedRecord}
           listExecutions={requestedExecutions}
         />
-        <GraphVisualisationFromIds graphIds={idForGraph} staticGraph={staticGraph} setStaticGraph={setStaticGraph} />
+        <GraphVisualisationFromIds
+          graphIds={idForGraph}
+          staticGraph={staticGraph}
+          setStaticGraph={setStaticGraph}
+        />
       </Box>
     </>
   );
@@ -167,7 +175,12 @@ function Executions({ executionsData, recordLabel }) {
       type: "dateTime",
       valueGetter: ({ value }) => value && new Date(value),
     },
-    { field: "sites_crawled_count", headerName: "Sites crawled", minWidth: 50, type: "number" }
+    {
+      field: "sites_crawled_count",
+      headerName: "Sites crawled",
+      minWidth: 50,
+      type: "number",
+    },
   ];
 
   try {

@@ -21,7 +21,6 @@ export default function RecordsView({
   staticGraph,
   setStaticGraph,
 }) {
-
   const [pageSize, setPageSize] = useState(20);
   const [rows, setRows] = useState([]);
 
