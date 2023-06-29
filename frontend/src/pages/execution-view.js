@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import { GraphVisualisationFromIds } from "../components/graph-visualisation";
+import GraphVisualisationFromIds from "../components/GraphVisualisationFromIds";
 import { BaseUrlContext } from "../utils/base-url-context";
 import { DataGrid } from "@mui/x-data-grid";
 
-export default function ExecutionView({ recordId }) {
+export default function ExecutionView({ recordId, staticGraph, setStaticGraph }) {
   const baseUrl = useContext(BaseUrlContext);
 
   const [requestedRecord, setRequestedRecord] = React.useState(null);
@@ -60,7 +60,7 @@ export default function ExecutionView({ recordId }) {
           record={requestedRecord}
           listExecutions={requestedExecutions}
         />
-        <GraphVisualisationFromIds graphIds={idForGraph} />
+        <GraphVisualisationFromIds graphIds={idForGraph} staticGraph={staticGraph} setStaticGraph={setStaticGraph} />
       </Box>
     </>
   );

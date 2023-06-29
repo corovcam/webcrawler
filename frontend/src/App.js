@@ -29,7 +29,10 @@ function App() {
             <Route path="wizard" element={<WizardPage appState={appState} />} />
             <Route path="wizard/:recordId" element={<WizardPageId />} />
             <Route path="view" element={<ViewPage appState={appState} />} />
-            <Route path="execution/:recordId" element={<ExecutionPage />} />
+            <Route
+              path="execution/:recordId"
+              element={<ExecutionPage appState={appState} />}
+            />
           </Routes>
         </Box>
       </BaseUrlContext.Provider>
@@ -165,13 +168,19 @@ function ViewPage({ appState }) {
   );
 }
 
-function ExecutionPage() {
+function ExecutionPage({ appState }) {
+  const { staticGraph, setStaticGraph } = appState;
+
   const { recordId } = useParams();
   return (
     <>
       <main>
         <h1>Execution View</h1>
-        <ExecutionView recordId={recordId} />
+        <ExecutionView
+          recordId={recordId}
+          staticGraph={staticGraph}
+          setStaticGraph={setStaticGraph}
+        />
       </main>
       <nav>
         <Stack
